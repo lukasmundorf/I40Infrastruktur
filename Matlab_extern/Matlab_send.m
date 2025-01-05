@@ -14,17 +14,27 @@ try
         sensor1Value = i * 1.1; % Beispiel-Daten für Sensor1
         sensor2Value = i * 2.2; % Beispiel-Daten für Sensor2
 
-        % Daten in Struktur speichern (zwei Sensorwerte + Zeit)
-        output = struct('time', timeStamp, ...
-                        'Sensor1', sensor1Value, ...
-                        'Sensor2', sensor2Value);
+         % Sensor1-Daten
+        sensor1Data = struct('time', timeStamp, ...
+                             'Sensor1', sensor1Value, ...
+                             'location', 'Room1', ...
+                             'device', 'DeviceA');
+        
+        % Sensor2-Daten
+        sensor2Data = struct('time', timeStamp, ...
+                             'Sensor2', sensor2Value, ...
+                             'location', 'Room2', ...
+                             'device', 'DeviceB');
 
-        % Daten in JSON konvertieren
-        payload = jsonencode(output);
+        % JSON-Daten für Sensor1 senden
+        payload1 = jsonencode(sensor1Data);
+        write(mqttClient, topic, payload1);
+        disp(['Daten für Sensor1 gesendet: ' payload1]);
 
-        % JSON-Daten an den Broker senden
-        write(mqttClient, topic, payload);
-        disp(['Daten gesendet: ' payload]);
+        % JSON-Daten für Sensor2 senden
+        payload2 = jsonencode(sensor2Data);
+        write(mqttClient, topic, payload2);
+        disp(['Daten für Sensor2 gesendet: ' payload2]);
 
         % Pause für 1 Sekunde
         pause(1);
