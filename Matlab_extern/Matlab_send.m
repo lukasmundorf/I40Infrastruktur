@@ -5,31 +5,41 @@ mqttClient = mqttclient("tcp://localhost:1884");
 topic = 'test/topic';
 
 % Parameter für das Sinussignal
-samplingRate = 100; % Abtastrate in Hz
+desiredFrequency = 200; % Gewünschte Schleifenfrequenz in Hz
+dt = 1 / desiredFrequency; % Zeit zwischen zwei Iterationen
+samplingRate = 1000; % Abtastrate des Timers (für kontinuierliches Signal)
 signalFrequency1 = 0.5; % Frequenz für Sensor1 in Hz
 signalFrequency2 = 0.3; % Frequenz für Sensor2 in Hz
 amplitude1 = 1; % Amplitude für Sensor1
 amplitude2 = 2; % Amplitude für Sensor2
-dt = 1 / samplingRate; % Abtastintervall
 
 % Geschlossene Funktion (Closure) für das Signal-Update erstellen
-signalUpdater = createSignalUpdater(amplitude1, signalFrequency1, amplitude2, signalFrequency2, dt);
+signalUpdater = createSignalUpdater(amplitude1, signalFrequency1, amplitude2, signalFrequency2, 1 / samplingRate);
 
-% Start des kontinuierlichen Sinus-Signals
+% Start der Signal- und MQTT-Datenübertragung
 disp('Start der Signal- und MQTT-Datenübertragung...');
 try
     % Timer für das Sinussignal
     signalTimer = timer(...
         'ExecutionMode', 'fixedRate', ...
-        'Period', dt, ...
+        'Period', 1 / samplingRate, ...
         'TimerFcn', @(~,~) signalUpdater(true));
 
     % Timer starten
     start(signalTimer);
 
+    % Zeitmessung für Schleifenbegrenzung
+    totalTime = 0; % Gesamtzeit für alle Iterationen
+    iterations = 1000; % Anzahl der Iterationen
+
+    % Startzeit der ersten Iteration
+    lastIterationStart = tic;
+
     % Endlosschleife für das Senden der Daten
-    i = 1;
-    while i <= 200
+    for i = 1:iterations
+        % Aktuelle Startzeit der Iteration
+        iterationStart = tic;
+
         % Einfache Daten generieren (Zeitstempel hinzufügen)
         timeStamp = posixtime(datetime('now')); % Unix-Zeitstempel
 
@@ -51,19 +61,33 @@ try
         % JSON-Daten für Sensor1 senden
         payload1 = jsonencode(sensor1Data);
         write(mqttClient, topic, payload1);
-        disp(['Daten für Sensor1 gesendet: ' payload1]);
 
         % JSON-Daten für Sensor2 senden
         payload2 = jsonencode(sensor2Data);
         write(mqttClient, topic, payload2);
-        disp(['Daten für Sensor2 gesendet: ' payload2]);
 
-        % Pause für 1 Sekunde zwischen den Sendungen
-        pause(0.1);
+        % Wartezeit berechnen und pausieren
+        elapsedIterationTime = toc(iterationStart); % Zeit für die Iteration
+        remainingTime = dt - elapsedIterationTime; % Verbleibende Zeit
+        if remainingTime > 0
+            pause(remainingTime); % Warten, um die gewünschte Frequenz zu halten
+        end
 
-        % Zähler erhöhen
-        i = i + 1;
+        % Gesamtzeit aktualisieren
+        totalTime = totalTime + toc(lastIterationStart);
+        lastIterationStart = tic;
+
+        % Fortschritt anzeigen
+        if mod(i, 100) == 0
+            disp(['Iteration ' num2str(i) ' abgeschlossen. Durchschnittszeit pro Iteration: ' num2str(totalTime / i) ' Sekunden']);
+        end
     end
+
+    % Durchschnittszeit und Abtastrate berechnen
+    averageTime = totalTime / iterations;
+    actualFrequency = 1 / averageTime; % Tatsächliche Schleifenfrequenz
+    disp(['Durchschnittliche Zeit pro Iteration: ' num2str(averageTime) ' Sekunden']);
+    disp(['Tatsächliche Abtastrate: ' num2str(actualFrequency) ' Hz']);
 
     % Timer stoppen
     stop(signalTimer);
@@ -74,7 +98,7 @@ catch ME
     disp(['Fehler: ' ME.message']);
 end
 
-disp('MQTT-Datenversand abgeschlossen.');
+disp('Signalübertragung abgeschlossen.');
 
 % Funktion zum Erstellen des Signal-Updaters
 function updater = createSignalUpdater(amplitude1, freq1, amplitude2, freq2, dt)
