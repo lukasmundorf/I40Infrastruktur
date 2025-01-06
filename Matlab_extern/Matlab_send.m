@@ -5,7 +5,7 @@ mqttClient = mqttclient("tcp://localhost:1884");
 topic = 'test/topic';
 
 % Parameter für das Sinussignal
-desiredFrequency = 200; % Gewünschte Schleifenfrequenz in Hz
+desiredFrequency = 1000; % Gewünschte Schleifenfrequenz in Hz
 dt = 1 / desiredFrequency; % Zeit zwischen zwei Iterationen
 samplingRate = 1000; % Abtastrate des Timers (für kontinuierliches Signal)
 signalFrequency1 = 0.5; % Frequenz für Sensor1 in Hz
@@ -30,7 +30,7 @@ try
 
     % Zeitmessung für Schleifenbegrenzung
     totalTime = 0; % Gesamtzeit für alle Iterationen
-    iterations = 1000; % Anzahl der Iterationen
+    iterations = 8000; % Anzahl der Iterationen
 
     % Startzeit der ersten Iteration
     lastIterationStart = tic;
