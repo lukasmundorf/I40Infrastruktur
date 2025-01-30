@@ -36,5 +36,21 @@ services:
     volumes:
       - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
 
+  http_to_mqtt_service:
+    build:
+      context: ./http-to-mqttmicroserviceDockerImage # Pfad zu deinem Dockerfile
+      dockerfile: Dockerfile # Standard-Dockerfile-Name
+    container_name: http_to_mqtt_service
+    platform: linux/amd64
+    ports:
+      - "9900:9910" # Externer Port für deinen HTTP-Endpunkt
+    depends_on:
+      - mosquitto
+    volumes:
+      - ./http-to-mqttmicroserviceDockerImage/matlabruntime:/matlabruntime:ro # Falls Runtime-Dateien nötig sind
+    environment:
+      - MATLAB_RUNTIME=/matlabruntime # Beispiel-Variable für MATLAB Runtime
+      - MQTT_BROKER=mosquitto
+
 volumes:
   influxdb-data:
