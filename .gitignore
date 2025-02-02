@@ -1,2 +1,22 @@
 .DS_Store
 ._*
+
+# Ignoriere alle Daten im Grafana-Storage
+Docker/grafana-storage/
+Docker/grafana-storage/*
+
+# Ignoriere Build-Dateien und temporäre Daten
+Docker/**/*.log
+Docker/**/*.db
+Docker/**/*.wasm
+Docker/**/*.js
+Docker/**/*.js.map
+
+# Ignoriere generell temporäre und generierte Dateien
+*.log
+*.db
+*.wasm
+
+# Ignoriere node_modules in proxy
+Docker/proxy/node_modules/
+Docker/proxy/node_modules/*

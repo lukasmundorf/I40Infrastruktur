@@ -51,6 +51,31 @@ services:
     environment:
       - MATLAB_RUNTIME=/matlabruntime # Beispiel-Variable für MATLAB Runtime
       - MQTT_BROKER=mosquitto
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana-storage:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+  proxy:
+    build:
+      context: ./proxy  # Zeigt auf den Proxy-Ordner
+      dockerfile: Dockerfile
+    container_name: proxy
+    ports:
+      - "5050:5000"  # Proxy läuft auf Port 5000
+    restart: always
+    depends_on:
+      - http_to_mqtt_service
 
 volumes:
   influxdb-data:
+  grafana-storage:

@@ -1,6 +1,10 @@
 % MQTT Client für MATLAB erstellen und konfigurieren
 mqttClient = mqttclient("tcp://localhost:1884");
 
+mqttClient.Connected
+
+pause(1)
+
 % Topic definieren
 topic = 'test/topic';
 
