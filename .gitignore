@@ -20,3 +20,6 @@ Docker/**/*.js.map
 # Ignoriere node_modules in proxy
 Docker/proxy/node_modules/
 Docker/proxy/node_modules/*
+
+http_to_mqttproductionServerArchive/
+http-to-mqttmicroserviceDockerImage/
