@@ -9,7 +9,6 @@ Docker/grafana-storage/*
 Docker/**/*.log
 Docker/**/*.db
 Docker/**/*.wasm
-Docker/**/*.js
 Docker/**/*.js.map
 
 # Ignoriere generell temporäre und generierte Dateien
