@@ -630,6 +630,17 @@
             "uid": "dded58a3-ffd6-4bd5-897f-f714c97e57d1",
             "unit": "",
             "value": ""
+          },
+          {
+            "id": "abtastrate_hz",
+            "labelWidth": 10,
+            "section": "channel",
+            "title": "Abtastrate",
+            "tooltip": "",
+            "type": "number",
+            "uid": "74aad8c1-e038-4859-9d32-4b3c5dd4497b",
+            "unit": "",
+            "value": 0
           }
         ],
         "initial": {
@@ -701,7 +712,7 @@
           "method": "POST",
           "payload": {},
           "payloadMode": "all",
-          "url": "http://httpbin.org/post"
+          "url": "http://localhost:5050"
         },
         "updateEnabled": "auto"
       },
@@ -730,6 +741,6 @@
   "timezone": "browser",
   "title": "Messung",
   "uid": "aed13cc2wvh1cc",
-  "version": 4,
+  "version": 6,
   "weekStart": ""
 }
