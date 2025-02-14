@@ -1,396 +1,735 @@
 {
-    "annotations": {
-      "list": [
-        {
-          "builtIn": 1,
-          "datasource": {
-            "type": "grafana",
-            "uid": "-- Grafana --"
-          },
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "type": "dashboard"
-        }
-      ]
-    },
-    "editable": true,
-    "fiscalYearStartMonth": 0,
-    "graphTooltip": 0,
-    "id": 1,
-    "links": [],
-    "panels": [
+  "annotations": {
+    "list": [
       {
+        "builtIn": 1,
         "datasource": {
-          "type": "datasource",
-          "uid": "grafana"
+          "type": "grafana",
+          "uid": "-- Grafana --"
         },
-        "fieldConfig": {
-          "defaults": {},
-          "overrides": []
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 16,
+        "w": 23,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "buttonGroup": {
+          "orientation": "center",
+          "size": "md"
         },
-        "gridPos": {
-          "h": 10,
-          "w": 24,
-          "x": 0,
-          "y": 0
+        "confirmModal": {
+          "body": "Please confirm to update changed values",
+          "cancel": "Cancel",
+          "columns": {
+            "include": [
+              "name",
+              "oldValue",
+              "newValue"
+            ],
+            "name": "Label",
+            "newValue": "New Value",
+            "oldValue": "Old Value"
+          },
+          "confirm": "Confirm",
+          "elementDisplayMode": "modified",
+          "title": "Confirm update request"
         },
-        "id": 1,
-        "options": {
-          "buttonGroup": {
-            "orientation": "center",
-            "size": "md"
-          },
-          "confirmModal": {
-            "body": "Please confirm to update changed values",
-            "cancel": "Cancel",
-            "columns": {
-              "include": [
-                "name",
-                "oldValue",
-                "newValue"
-              ],
-              "name": "Label",
-              "newValue": "New Value",
-              "oldValue": "Old Value"
-            },
-            "confirm": "Confirm",
-            "elementDisplayMode": "modified",
-            "title": "Confirm update request"
-          },
-          "elementValueChanged": "",
-          "elements": [
-            {
-              "allowCustomValue": false,
-              "id": "ch_checkboxes",
-              "labelWidth": -1,
-              "options": [
-                {
-                  "id": "ch1",
-                  "label": "CH1",
-                  "type": "string",
-                  "value": "ch1"
-                },
-                {
-                  "id": "ch2",
-                  "label": "CH2",
-                  "type": "string",
-                  "value": "ch2"
-                },
-                {
-                  "id": "ch3",
-                  "label": "ch3",
-                  "type": "string",
-                  "value": "ch3"
-                },
-                {
-                  "id": "ch4",
-                  "label": "ch4",
-                  "type": "string",
-                  "value": "ch4"
-                },
-                {
-                  "id": "5",
-                  "label": "5",
-                  "type": "string",
-                  "value": "5"
-                },
-                {
-                  "id": "6",
-                  "label": "6",
-                  "type": "string",
-                  "value": "6"
-                },
-                {
-                  "id": "7",
-                  "label": "7",
-                  "type": "string",
-                  "value": "7"
-                },
-                {
-                  "id": "8",
-                  "label": "8",
-                  "type": "string",
-                  "value": "8"
-                },
-                {
-                  "id": "9",
-                  "label": "9",
-                  "type": "string",
-                  "value": "9"
-                },
-                {
-                  "id": "10",
-                  "label": "10",
-                  "type": "string",
-                  "value": "10"
-                },
-                {
-                  "id": "11",
-                  "label": "11",
-                  "type": "string",
-                  "value": "11"
-                },
-                {
-                  "id": "12",
-                  "label": "12",
-                  "type": "string",
-                  "value": "12"
-                }
-              ],
-              "optionsSource": "Custom",
-              "section": "channel",
-              "title": "",
-              "tooltip": "",
-              "type": "checkboxList",
-              "uid": "9e0b24b2-1be9-4fb5-abf1-878592bd99b3",
-              "unit": "",
-              "value": []
-            },
-            {
-              "hidden": false,
-              "id": "string_sensitivity",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "8eacd34d-5cc5-4290-b78f-73236b013aa4",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": "jion",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "7f89e57e-75f5-44f8-83d4-7dad3984d4ca",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": "lkn",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "e1a67229-aa30-4b4c-8204-fbe91230ff62",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": "etzz4",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "4ea955ec-5c79-4e93-b7d5-788ac3cc20d1",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": "rzrz",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "037e5359-88e3-4a44-8a12-c2870c48fe7c",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": "jtj",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "9994baa9-e8e0-43be-880f-543310855361",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": "etjz",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "1903e974-76d5-4c74-a3f5-e922dc66714e",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": "rftuzrws",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "1033f0cf-91d0-4a06-aa67-34a5fcac31fb",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": ",itumku",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "5757f047-4e5d-4480-8d11-5c8a152dc94a",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": ",tuzfsyg",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "cc6a52d6-98a3-403d-b458-1e4914ffea2b",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": "erszgeydrgfa",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "7c50c457-e3f7-4fe1-9e93-c3e21c221b01",
-              "unit": "",
-              "value": ""
-            },
-            {
-              "hidden": false,
-              "id": "awfr",
-              "labelWidth": 10,
-              "section": "sensitivity",
-              "title": "",
-              "tooltip": "",
-              "type": "string",
-              "uid": "eef910cb-b79e-461d-9793-6bc3c8203464",
-              "unit": "",
-              "value": ""
-            }
-          ],
-          "initial": {
-            "code": "console.log(context.panel.data, context.panel.response, context.panel.initial, context.panel.elements);\n\nreturn;\n\n/**\n * Data Source\n * Requires form elements to be defined\n */\nconst dataQuery = context.utils.toDataQueryResponse(context.panel.response);\nconsole.log(dataQuery);",
-            "contentType": "application/json",
-            "getPayload": "return {}",
-            "highlight": false,
-            "highlightColor": "red",
-            "method": "-",
-            "payload": {}
-          },
-          "layout": {
-            "orientation": "horizontal",
-            "padding": 10,
-            "sectionVariant": "collapsable",
-            "sections": [
+        "elementValueChanged": "",
+        "elements": [
+          {
+            "allowCustomValue": false,
+            "id": "ch_checkboxes",
+            "labelWidth": -1,
+            "options": [
               {
-                "id": "channel",
-                "name": "Channels"
+                "id": "ch1",
+                "label": "CH1",
+                "type": "string",
+                "value": "ch1"
               },
               {
-                "id": "sensitivity",
-                "name": "Sensitivität"
+                "id": "ch2",
+                "label": "CH2",
+                "type": "string",
+                "value": "ch2"
               },
               {
-                "id": "einheit",
-                "name": "Einheiten"
+                "id": "ch3",
+                "label": "CH3",
+                "type": "string",
+                "value": "ch3"
               },
               {
-                "id": "messrichtung",
-                "name": "Messrichtung"
+                "id": "ch4",
+                "label": "CH4",
+                "type": "string",
+                "value": "ch4"
+              },
+              {
+                "id": "ch5",
+                "label": "CH5",
+                "type": "string",
+                "value": "ch5"
+              },
+              {
+                "id": "ch6",
+                "label": "CH6",
+                "type": "string",
+                "value": "ch6"
+              },
+              {
+                "id": "ch7",
+                "label": "CH7",
+                "type": "string",
+                "value": "ch7"
+              },
+              {
+                "id": "ch8",
+                "label": "CH8",
+                "type": "string",
+                "value": "ch8"
+              },
+              {
+                "id": "ch9",
+                "label": "CH9",
+                "type": "string",
+                "value": "ch9"
+              },
+              {
+                "id": "ch10",
+                "label": "CH10",
+                "type": "string",
+                "value": "ch10"
+              },
+              {
+                "id": "ch11",
+                "label": "CH11",
+                "type": "string",
+                "value": "ch11"
+              },
+              {
+                "id": "ch12",
+                "label": "CH12",
+                "type": "string",
+                "value": "ch12"
               }
             ],
-            "variant": "split"
+            "optionsSource": "Custom",
+            "section": "channel",
+            "title": "",
+            "tooltip": "",
+            "type": "checkboxList",
+            "uid": "9e0b24b2-1be9-4fb5-abf1-878592bd99b3",
+            "unit": "",
+            "value": []
           },
-          "reset": {
-            "backgroundColor": "purple",
-            "foregroundColor": "yellow",
-            "icon": "process",
-            "text": "Reset",
-            "variant": "hidden"
-          },
-          "resetAction": {
-            "code": "if (context.panel.response) {\n  context.grafana.notifySuccess(['Update', 'Values updated successfully.']);\n  context.grafana.refresh();\n} else {\n  context.grafana.notifyError(['Update', 'An error occurred updating values.']);\n}",
-            "confirm": false,
-            "getPayload": "return {}",
-            "mode": "initial",
-            "payload": {}
-          },
-          "saveDefault": {
-            "icon": "save",
-            "text": "Save Default",
-            "variant": "hidden"
-          },
-          "submit": {
-            "backgroundColor": "purple",
-            "foregroundColor": "yellow",
-            "icon": "cloud-upload",
-            "text": "Submit",
-            "variant": "primary"
-          },
-          "sync": true,
-          "update": {
-            "code": "if (context.panel.response) {\n  context.grafana.notifySuccess(['Update', 'Values updated successfully.']);\n  context.grafana.refresh();\n} else {\n  context.grafana.notifyError(['Update', 'An error occurred updating values.']);\n}",
-            "confirm": false,
-            "contentType": "application/json",
-            "getPayload": "const payload = {};\ncontext.panel.elements.forEach((element) => {\n  if (!element.value) {\n    return;\n  }\n  payload[element.id] = element.value;\n})\nreturn payload;",
-            "header": [],
-            "method": "POST",
-            "payload": {},
-            "payloadMode": "all",
-            "url": "http://httpbin.org/post"
-          },
-          "updateEnabled": "auto"
-        },
-        "pluginVersion": "5.0.0",
-        "targets": [
           {
-            "refId": "A"
+            "id": "ch1_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH1",
+            "tooltip": "",
+            "type": "number",
+            "uid": "8eacd34d-5cc5-4290-b78f-73236b013aa4",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch2_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH2",
+            "tooltip": "",
+            "type": "number",
+            "uid": "7f89e57e-75f5-44f8-83d4-7dad3984d4ca",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch3_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH3",
+            "tooltip": "",
+            "type": "number",
+            "uid": "e1a67229-aa30-4b4c-8204-fbe91230ff62",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch4_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH4",
+            "tooltip": "",
+            "type": "number",
+            "uid": "4ea955ec-5c79-4e93-b7d5-788ac3cc20d1",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch5_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH5",
+            "tooltip": "",
+            "type": "number",
+            "uid": "037e5359-88e3-4a44-8a12-c2870c48fe7c",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch6_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH6",
+            "tooltip": "",
+            "type": "number",
+            "uid": "9994baa9-e8e0-43be-880f-543310855361",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch7_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH7",
+            "tooltip": "",
+            "type": "number",
+            "uid": "1903e974-76d5-4c74-a3f5-e922dc66714e",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch8_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH8",
+            "tooltip": "",
+            "type": "number",
+            "uid": "1033f0cf-91d0-4a06-aa67-34a5fcac31fb",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch9_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH9",
+            "tooltip": "",
+            "type": "number",
+            "uid": "5757f047-4e5d-4480-8d11-5c8a152dc94a",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch10_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH10",
+            "tooltip": "",
+            "type": "number",
+            "uid": "cc6a52d6-98a3-403d-b458-1e4914ffea2b",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch11_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH11",
+            "tooltip": "",
+            "type": "number",
+            "uid": "7c50c457-e3f7-4fe1-9e93-c3e21c221b01",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "id": "ch12_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH12",
+            "tooltip": "",
+            "type": "number",
+            "uid": "eef910cb-b79e-461d-9793-6bc3c8203464",
+            "unit": "",
+            "value": 0,
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch1_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH1",
+            "tooltip": "",
+            "type": "string",
+            "uid": "af3af3a4-9a0b-461c-b34e-a5a82a33e26f",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch2_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH2",
+            "tooltip": "",
+            "type": "string",
+            "uid": "fd459881-4c9b-4ac9-9e93-5c1af5ea8b8f",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch3_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH3",
+            "tooltip": "",
+            "type": "string",
+            "uid": "a9e77d53-a278-4644-95a3-2b68212a2cec",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch4_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH4",
+            "tooltip": "",
+            "type": "string",
+            "uid": "b2a43a83-0f4c-4ec0-9758-d8c01a9dbb7e",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch5_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH5",
+            "tooltip": "",
+            "type": "string",
+            "uid": "bd9ac7a1-da16-41b6-a3a6-4fb5a8fcfaee",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch6_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH6",
+            "tooltip": "",
+            "type": "string",
+            "uid": "6e5974cb-a12d-4daa-b6b1-d8e4ab32d040",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch7_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH7",
+            "tooltip": "",
+            "type": "string",
+            "uid": "03d9136f-305b-4868-bff5-c27013532b2c",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch8_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH8",
+            "tooltip": "",
+            "type": "string",
+            "uid": "4f7df31e-0ea6-496d-b6bb-cc76fb502e05",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch9_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH9",
+            "tooltip": "",
+            "type": "string",
+            "uid": "bcd1671a-34ed-413c-ba53-6f636f2a5030",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch10_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH10",
+            "tooltip": "",
+            "type": "string",
+            "uid": "e2b31930-a85b-4461-a514-4e96c66a7ae4",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch11_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH11",
+            "tooltip": "",
+            "type": "string",
+            "uid": "cfcdb39c-2b99-4320-bd98-572f031f2432",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch12_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH12",
+            "tooltip": "",
+            "type": "string",
+            "uid": "a676833d-b5a6-4102-a8fd-d888226d67a8",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch1_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH1",
+            "tooltip": "",
+            "type": "string",
+            "uid": "c19bfb9b-583b-441a-9f59-73b880150768",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch2_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH2",
+            "tooltip": "",
+            "type": "string",
+            "uid": "c948c519-cab8-4d58-b719-4c936cdbdae6",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch3_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH3",
+            "tooltip": "",
+            "type": "string",
+            "uid": "9ce2f0cc-47de-48ea-8b06-fe8260f7869d",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch4_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH4",
+            "tooltip": "",
+            "type": "string",
+            "uid": "261d79bc-28c4-4cff-86ab-15bcb4917c21",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch5_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH5",
+            "tooltip": "",
+            "type": "string",
+            "uid": "ddfcd46b-939a-464c-a908-7c36acf106fc",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch6_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH6",
+            "tooltip": "",
+            "type": "string",
+            "uid": "daaaf0e4-d101-4944-86ba-ec42f4ab6d6b",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch7_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH7",
+            "tooltip": "",
+            "type": "string",
+            "uid": "ecd78d04-1629-4182-a88f-d03aa622372b",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch8_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH8",
+            "tooltip": "",
+            "type": "string",
+            "uid": "a5a828eb-8fa5-4682-9727-7619fe4939ee",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch9_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH9",
+            "tooltip": "",
+            "type": "string",
+            "uid": "8b3c810b-2083-40e3-9fac-548279bcd347",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch10_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH10",
+            "tooltip": "",
+            "type": "string",
+            "uid": "b4993482-6114-4cb8-abed-6990d48bec59",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch11_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH11",
+            "tooltip": "",
+            "type": "string",
+            "uid": "03d79b93-358c-4145-9741-22f3260de4ea",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch12_messrichtung",
+            "labelWidth": 5,
+            "section": "messrichtung",
+            "title": "CH12",
+            "tooltip": "",
+            "type": "string",
+            "uid": "f4058f25-d1c6-46bc-9026-fcb71415691f",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "swich_startStop",
+            "labelWidth": 10,
+            "options": [
+              {
+                "id": "start",
+                "label": "Start",
+                "type": "string",
+                "value": "start"
+              },
+              {
+                "id": "stop",
+                "label": "Stop",
+                "type": "string",
+                "value": "stop"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "channel",
+            "title": "Messung",
+            "tooltip": "",
+            "type": "radio",
+            "uid": "dded58a3-ffd6-4bd5-897f-f714c97e57d1",
+            "unit": "",
+            "value": ""
           }
         ],
-        "title": "Steuerung der Messung",
-        "type": "volkovlabs-form-panel"
-      }
-    ],
-    "preload": false,
-    "refresh": "",
-    "schemaVersion": 40,
-    "tags": [],
-    "templating": {
-      "list": []
-    },
-    "time": {
-      "from": "now-6h",
-      "to": "now"
-    },
-    "timepicker": {},
-    "timezone": "browser",
-    "title": "Messung",
-    "uid": "aed13cc2wvh1cc",
-    "version": 12,
-    "weekStart": ""
-  }
+        "initial": {
+          "code": "console.log(context.panel.data, context.panel.response, context.panel.initial, context.panel.elements);\n\nreturn;\n\n/**\n * Data Source\n * Requires form elements to be defined\n */\nconst dataQuery = context.utils.toDataQueryResponse(context.panel.response);\nconsole.log(dataQuery);",
+          "contentType": "application/json",
+          "getPayload": "return {}",
+          "highlight": false,
+          "highlightColor": "red",
+          "method": "-",
+          "payload": {}
+        },
+        "layout": {
+          "orientation": "horizontal",
+          "padding": 10,
+          "sectionVariant": "collapsable",
+          "sections": [
+            {
+              "id": "channel",
+              "name": "Channels"
+            },
+            {
+              "id": "sensitivity",
+              "name": "Sensitivität"
+            },
+            {
+              "id": "einheit",
+              "name": "Einheiten"
+            },
+            {
+              "id": "messrichtung",
+              "name": "Messrichtung"
+            }
+          ],
+          "variant": "split"
+        },
+        "reset": {
+          "backgroundColor": "purple",
+          "foregroundColor": "yellow",
+          "icon": "process",
+          "text": "Reset",
+          "variant": "hidden"
+        },
+        "resetAction": {
+          "code": "if (context.panel.response) {\n  context.grafana.notifySuccess(['Update', 'Values updated successfully.']);\n  context.grafana.refresh();\n} else {\n  context.grafana.notifyError(['Update', 'An error occurred updating values.']);\n}",
+          "confirm": false,
+          "getPayload": "return {}",
+          "mode": "initial",
+          "payload": {}
+        },
+        "saveDefault": {
+          "icon": "save",
+          "text": "Save Default",
+          "variant": "hidden"
+        },
+        "submit": {
+          "backgroundColor": "purple",
+          "foregroundColor": "yellow",
+          "icon": "cloud-upload",
+          "text": "Submit",
+          "variant": "primary"
+        },
+        "sync": true,
+        "update": {
+          "code": "if (context.panel.response) {\n  context.grafana.notifySuccess(['Update', 'Values updated successfully.']);\n  context.grafana.refresh();\n} else {\n  context.grafana.notifyError(['Update', 'An error occurred updating values.']);\n}",
+          "confirm": false,
+          "contentType": "application/json",
+          "getPayload": "const payload = {};\ncontext.panel.elements.forEach((element) => {\n  if (!element.value) {\n    return;\n  }\n  payload[element.id] = element.value;\n})\nreturn payload;",
+          "header": [],
+          "method": "POST",
+          "payload": {},
+          "payloadMode": "all",
+          "url": "http://httpbin.org/post"
+        },
+        "updateEnabled": "auto"
+      },
+      "pluginVersion": "5.0.0",
+      "targets": [
+        {
+          "refId": "A"
+        }
+      ],
+      "title": "Steuerung der Messung",
+      "type": "volkovlabs-form-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 40,
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Messung",
+  "uid": "aed13cc2wvh1cc",
+  "version": 4,
+  "weekStart": ""
+}
