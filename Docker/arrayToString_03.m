@@ -1,3 +1,5 @@
+%Für 1 String-Input-Parameter
+
 function output = arrayToString_03(inputStr)
     % Überprüfe, ob die Eingabe ein String oder ein char-Array ist
     if ~ischar(inputStr) && ~isstring(inputStr)

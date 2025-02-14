@@ -1,8 +1,8 @@
 clearvars
 clc
 
-result = compiler.build.productionServerArchive('arrayToString_03.m', 'ArchiveName','array_to_string_03','Verbose','on');
-compiler.package.microserviceDockerImage(result,'ImageName',['array-to-string_03'])
+result = compiler.build.productionServerArchive('arrayToString_06.m', 'ArchiveName','array_to_string_06','Verbose','on');
+compiler.package.microserviceDockerImage(result,'ImageName',['array-to-string_06'])
 
 
 
