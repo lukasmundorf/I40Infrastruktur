@@ -3,7 +3,7 @@ const cors = require('cors');
 const axios = require('axios');
 
 const app = express();
-const PORT = 5000; // Der Proxy läuft auf Port 5000
+const PORT = 5000; // Intern verwendeter Port
 
 // Middleware für JSON-Parsing
 app.use(express.json());
@@ -11,19 +11,55 @@ app.use(express.json());
 // CORS aktivieren
 app.use(cors());
 
-// Proxy-Endpoint für Business Forms
+/**
+ * Transformiert die eingehende JSON-Nachricht in das von MATLAB erwartete Format.
+ */
 app.post('/proxy', async (req, res) => {
     try {
         console.log("Original Body von Grafana:", req.body);
 
-        // Werte aus Grafana extrahieren
-        const rhs1 = req.body.rhs1 || 0; // Standardwert 0, falls rhs1 fehlt
-        const rhs2 = req.body.rhs2 || 0; // Standardwert 0, falls rhs2 fehlt
+        // 1. ch_checkboxes: Erhalte Array und fülle auf 12 Einträge auf
+        const checkboxes = Array.isArray(req.body.ch_checkboxes) ? req.body.ch_checkboxes : [];
+        while (checkboxes.length < 12) {
+            checkboxes.push("");
+        }
+        const channels = checkboxes.slice(0, 12);
 
-        // MATLAB-kompatiblen JSON-Body erstellen
+        // 2. Einheiten: ch1_einheit bis ch12_einheit
+        const einheiten = [];
+        for (let i = 1; i <= 12; i++) {
+            einheiten.push(req.body[`ch${i}_einheit`] || "");
+        }
+
+        // 3. Messrichtungen: ch1_messrichtung bis ch12_messrichtung
+        const messrichtungen = [];
+        for (let i = 1; i <= 12; i++) {
+            messrichtungen.push(req.body[`ch${i}_messrichtung`] || "");
+        }
+
+        // 4. swich_startStop: Übergabe als String
+        const swich_startStop = req.body.swich_startStop || "";
+
+        // 5. Sensitivities: ch1_sensitivity bis ch12_sensitivity
+        const sensitivities = [];
+        for (let i = 1; i <= 12; i++) {
+            sensitivities.push(parseFloat(req.body[`ch${i}_sensitivity`]) || 0);
+        }
+
+        // 6. abtastrate_hz: als einzelne Zahl in einem Array
+        const abtastrate_hz = [parseFloat(req.body.abtastrate_hz) || 0];
+
+        // Zusammenbau des neuen MATLAB-kompatiblen Bodys
         const newBody = {
             nargout: 1,
-            rhs: [parseFloat(rhs1), parseFloat(rhs2)] // Konvertiere Strings zu Zahlen
+            rhs: [
+                ...channels,         // Positionen 0-11: Einzelne Channels
+                ...einheiten,        // Positionen 12-23: Einheiten
+                ...messrichtungen,   // Positionen 24-35: Messrichtungen
+                swich_startStop,     // Position 36: "start" oder "stop"
+                sensitivities,       // Position 37: Array der Sensitivities (12 Werte)
+                abtastrate_hz        // Position 38: Array mit abtastrate_hz
+            ]
         };
 
         console.log("Umgewandelter Body:", newBody);
@@ -39,17 +75,14 @@ app.post('/proxy', async (req, res) => {
         res.json(response.data);
     } catch (error) {
         console.error("Fehler im Proxy:", error.message);
-
-        // Fehlerdetails für Debugging
         if (error.response) {
             console.error("Antwort vom Microservice:", error.response.data);
         }
-
         res.status(500).json({ error: "Fehler beim Weiterleiten der Anfrage" });
     }
 });
 
-// Proxy starten
+// Starte den Proxy-Server
 app.listen(PORT, () => {
     console.log(`Proxy-Server läuft auf http://localhost:${PORT}`);
 });

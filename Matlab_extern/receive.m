@@ -24,12 +24,19 @@ while true
                 % JSON-Daten decodieren
                 data = jsondecode(payload);
 
-                % Werte ausgeben
-                fprintf("[%s] %s: Messdauer = %d, Abtastrate = %d\n", ...
-                    datestr(messages.Time(i), 'HH:MM:SS'), ...
-                    messages.Topic(i), ...
-                    data.messdauer, ...
-                    data.abtastrate);
+                % Werte ausgeben (angepasst auf das erwartete JSON-Format)
+                fprintf("\n[%s] %s: \n", ...
+                    datestr(messages.Time(i), 'HH:MM:SS'), messages.Topic(i));
+
+                fprintf("Start/Stop Status: %s\n", data.startStop);
+                fprintf("Abtastrate (Hz): %d\n", data.abtastrateHz);
+
+                fprintf("Channels: %s\n", strjoin(data.channel, ", "));
+                fprintf("Einheiten: %s\n", strjoin(data.einheit, ", "));
+                fprintf("Messrichtungen: %s\n", strjoin(data.messrichtung, ", "));
+                
+                fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
+
             catch ME
                 % Falls Decodierung fehlschlägt, Payload direkt ausgeben
                 fprintf("[%s] %s: Fehler beim Verarbeiten des Payloads: %s\n", ...
