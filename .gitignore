@@ -1,10 +1,6 @@
 .DS_Store
 ._*
 
-# Ignoriere alle Daten im Grafana-Storage
-Docker/grafana-storage/
-Docker/grafana-storage/*
-
 # Ignoriere Build-Dateien und temporäre Daten
 Docker/**/*.log
 Docker/**/*.db
