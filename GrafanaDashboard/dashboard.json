@@ -712,7 +712,7 @@
           "method": "POST",
           "payload": {},
           "payloadMode": "all",
-          "url": "http://localhost:5050"
+          "url": "http://localhost:5050/proxy"
         },
         "updateEnabled": "auto"
       },
