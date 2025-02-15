@@ -37,9 +37,7 @@ services:
       - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
 
   http_to_mqtt_service:
-    build:
-      context: ./http-to-mqttmicroserviceDockerImage # Pfad zu deinem Dockerfile
-      dockerfile: Dockerfile # Standard-Dockerfile-Name
+    image: http-to-mqtt
     container_name: http_to_mqtt_service
     platform: linux/amd64
     ports:
