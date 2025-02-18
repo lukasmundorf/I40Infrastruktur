@@ -49,6 +49,15 @@ services:
     environment:
       - MATLAB_RUNTIME=/matlabruntime # Beispiel-Variable für MATLAB Runtime
       - MQTT_BROKER=mosquitto
+
+  matlab_request:
+    image: matlab-request
+    container_name: matlab_request
+    ports:
+      - "9901:9910"
+    depends_on:
+      - influxdb
+
   grafana:
     image: grafana/grafana
     container_name: grafana
