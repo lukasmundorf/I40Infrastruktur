@@ -1,3 +1,5 @@
+clearvars
+
 % MQTT Client für MATLAB erstellen und konfigurieren
 mqttClient = mqttclient("tcp://localhost:1884");
 
@@ -35,19 +37,29 @@ try
     i = 1;
     while i <= 200
         % Einfache Daten generieren (Zeitstempel hinzufügen)
-        timeStamp = posixtime(datetime('now')); % Unix-Zeitstempel
+        timeStampMinusMinutes = (posixtime(datetime('now')));
+        timeStampTelegraf_ms = int64((posixtime(datetime('now'))-3600) * 1000);
+
+
+        normalNow = datetime(timeStampMinusMinutes, 'ConvertFrom', 'posixtime');
+        disp(['Normale Zeit: ', datestr(normalNow)]);
+
+        normalEarly = datetime(timeStampTelegraf_ms/1000, 'ConvertFrom', 'posixtime');
+        disp(['frühe Zeit: ', datestr(normalEarly)]);
+       
+
 
         % Aktuelle Sensorwerte abrufen
         [sensor1Value, sensor2Value] = signalUpdater();
 
         % Sensor1-Daten
-        sensor1Data = struct('time', timeStamp, ...
+        sensor1Data = struct('time', timeStampTelegraf_ms, ...
                              'Sensor1', sensor1Value, ...
                              'location', 'Room1', ...
                              'device', 'DeviceA');
 
         % Sensor2-Daten
-        sensor2Data = struct('time', timeStamp, ...
+        sensor2Data = struct('time', timeStampTelegraf_ms, ...
                              'Sensor2', sensor2Value, ...
                              'location', 'Room2', ...
                              'device', 'DeviceB');
