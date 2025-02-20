@@ -1,4 +1,20 @@
 {
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "11.5.1"
+    },
+    {
+      "type": "panel",
+      "id": "volkovlabs-form-panel",
+      "name": "Business Forms",
+      "version": "5.0.0"
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -18,17 +34,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": null,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "datasource",
         "uid": "grafana"
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
       },
       "gridPos": {
         "h": 16,
@@ -40,7 +52,7 @@
       "options": {
         "buttonGroup": {
           "orientation": "center",
-          "size": "md"
+          "size": "lg"
         },
         "confirmModal": {
           "body": "Please confirm to update changed values",
@@ -66,6 +78,12 @@
             "id": "ch_checkboxes",
             "labelWidth": -1,
             "options": [
+              {
+                "id": "ch0",
+                "label": "CH0",
+                "type": "string",
+                "value": "ch0"
+              },
               {
                 "id": "ch1",
                 "label": "CH1",
@@ -131,12 +149,6 @@
                 "label": "CH11",
                 "type": "string",
                 "value": "ch11"
-              },
-              {
-                "id": "ch12",
-                "label": "CH12",
-                "type": "string",
-                "value": "ch12"
               }
             ],
             "optionsSource": "Custom",
@@ -147,6 +159,18 @@
             "uid": "9e0b24b2-1be9-4fb5-abf1-878592bd99b3",
             "unit": "",
             "value": []
+          },
+          {
+            "id": "ch0_sensitivity",
+            "labelWidth": 5,
+            "section": "sensitivity",
+            "title": "CH0",
+            "tooltip": "",
+            "type": "number",
+            "uid": "eef910cb-b79e-461d-9793-6bc3c8203464",
+            "unit": "",
+            "value": 0,
+            "width": 20
           },
           {
             "id": "ch1_sensitivity",
@@ -281,18 +305,6 @@
             "width": 20
           },
           {
-            "id": "ch12_sensitivity",
-            "labelWidth": 5,
-            "section": "sensitivity",
-            "title": "CH12",
-            "tooltip": "",
-            "type": "number",
-            "uid": "eef910cb-b79e-461d-9793-6bc3c8203464",
-            "unit": "",
-            "value": 0,
-            "width": 20
-          },
-          {
             "hidden": false,
             "id": "ch1_einheit",
             "labelWidth": 5,
@@ -301,6 +313,19 @@
             "tooltip": "",
             "type": "string",
             "uid": "af3af3a4-9a0b-461c-b34e-a5a82a33e26f",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch0_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH0",
+            "tooltip": "",
+            "type": "string",
+            "uid": "a676833d-b5a6-4102-a8fd-d888226d67a8",
             "unit": "",
             "value": "",
             "width": 20
@@ -436,156 +461,624 @@
             "width": 20
           },
           {
-            "hidden": false,
-            "id": "ch12_einheit",
+            "allowCustomValue": false,
+            "id": "ch0_messrichtung",
             "labelWidth": 5,
-            "section": "einheit",
-            "title": "CH12",
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "messrichtung",
+            "title": "CH0",
             "tooltip": "",
-            "type": "string",
-            "uid": "a676833d-b5a6-4102-a8fd-d888226d67a8",
+            "type": "select",
+            "uid": "f4058f25-d1c6-46bc-9026-fcb71415691f",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch1_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH1",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "c19bfb9b-583b-441a-9f59-73b880150768",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch2_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH2",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "c948c519-cab8-4d58-b719-4c936cdbdae6",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch3_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH3",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "9ce2f0cc-47de-48ea-8b06-fe8260f7869d",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch4_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH4",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "261d79bc-28c4-4cff-86ab-15bcb4917c21",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch5_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH5",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "ddfcd46b-939a-464c-a908-7c36acf106fc",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch6_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH6",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "daaaf0e4-d101-4944-86ba-ec42f4ab6d6b",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch7_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH7",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "ecd78d04-1629-4182-a88f-d03aa622372b",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch8_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH8",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "a5a828eb-8fa5-4682-9727-7619fe4939ee",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch9_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH9",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "8b3c810b-2083-40e3-9fac-548279bcd347",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch10_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH10",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "b4993482-6114-4cb8-abed-6990d48bec59",
             "unit": "",
             "value": "",
             "width": 20
           },
           {
-            "hidden": false,
+            "allowCustomValue": false,
             "id": "ch11_messrichtung",
             "labelWidth": 5,
+            "options": [
+              {
+                "id": "+X",
+                "label": "+X",
+                "type": "string",
+                "value": "+X"
+              },
+              {
+                "id": "-X",
+                "label": "-X",
+                "type": "string",
+                "value": "-X"
+              },
+              {
+                "id": "+Y",
+                "label": "+Y",
+                "type": "string",
+                "value": "+Y"
+              },
+              {
+                "id": "-Y",
+                "label": "-Y",
+                "type": "string",
+                "value": "-Y"
+              },
+              {
+                "id": "+Z",
+                "label": "+Z",
+                "type": "string",
+                "value": "+Z"
+              },
+              {
+                "id": "-Z",
+                "label": "-Z",
+                "type": "string",
+                "value": "-Z"
+              }
+            ],
+            "optionsSource": "Custom",
             "section": "messrichtung",
             "title": "CH11",
             "tooltip": "",
-            "type": "string",
+            "type": "select",
             "uid": "03d79b93-358c-4145-9741-22f3260de4ea",
             "unit": "",
             "value": "",
@@ -593,13 +1086,155 @@
           },
           {
             "hidden": false,
-            "id": "ch12_messrichtung",
+            "id": "ch0_notes",
             "labelWidth": 5,
-            "section": "messrichtung",
-            "title": "CH12",
+            "section": "notizen",
+            "title": "CH0",
             "tooltip": "",
             "type": "string",
-            "uid": "f4058f25-d1c6-46bc-9026-fcb71415691f",
+            "uid": "0a57e3c6-ed8b-4ce9-bd14-bd8b676753f0",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch1_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH1",
+            "tooltip": "",
+            "type": "string",
+            "uid": "a5513e3a-1dcc-4057-b431-7f538e335739",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch2_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH2",
+            "tooltip": "",
+            "type": "string",
+            "uid": "c37998ec-3706-4027-b653-4e579ef5deec",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch3_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH3",
+            "tooltip": "",
+            "type": "string",
+            "uid": "6aaa5bc7-a3f3-42b5-aeee-595b33f31081",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch4_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH4",
+            "tooltip": "",
+            "type": "string",
+            "uid": "59f1a250-56e9-4fdd-be9d-61c7886513b2",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch5_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH5",
+            "tooltip": "",
+            "type": "string",
+            "uid": "0f444634-4fd9-4baa-9c6b-093f70dc56ba",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch6_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH6",
+            "tooltip": "",
+            "type": "string",
+            "uid": "1115d68c-c4b2-4f88-8f64-d914de0031b4",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch7_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH7",
+            "tooltip": "",
+            "type": "string",
+            "uid": "b5a585fc-ece7-46e7-9cb8-fae6f24ae6ae",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch8_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH8",
+            "tooltip": "",
+            "type": "string",
+            "uid": "8c8d040e-b80b-4ea3-8586-658c69a69433",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch9_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH9",
+            "tooltip": "",
+            "type": "string",
+            "uid": "8f838e6b-4454-4529-aa53-0a0287977f2b",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch10_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH10",
+            "tooltip": "",
+            "type": "string",
+            "uid": "243f0d95-f7af-400f-9ea7-61f6ffbd74b3",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch11_notes",
+            "labelWidth": 5,
+            "section": "notizen",
+            "title": "CH11",
+            "tooltip": "",
+            "type": "string",
+            "uid": "de1c9a92-b24b-4571-9968-951df64ee920",
             "unit": "",
             "value": "",
             "width": 20
@@ -623,7 +1258,7 @@
               }
             ],
             "optionsSource": "Custom",
-            "section": "channel",
+            "section": "einheit",
             "title": "Messung",
             "tooltip": "",
             "type": "radio",
@@ -634,13 +1269,25 @@
           {
             "id": "abtastrate_hz",
             "labelWidth": 10,
-            "section": "channel",
+            "section": "einheit",
             "title": "Abtastrate",
             "tooltip": "",
             "type": "number",
             "uid": "74aad8c1-e038-4859-9d32-4b3c5dd4497b",
             "unit": "",
             "value": 0
+          },
+          {
+            "hidden": false,
+            "id": "measurementName",
+            "labelWidth": 14,
+            "section": "einheit",
+            "title": "Name Messung",
+            "tooltip": "",
+            "type": "string",
+            "uid": "99e5fc01-022e-44ae-80e3-f3ef071620f8",
+            "unit": "",
+            "value": ""
           }
         ],
         "initial": {
@@ -672,6 +1319,10 @@
             {
               "id": "messrichtung",
               "name": "Messrichtung"
+            },
+            {
+              "id": "notizen",
+              "name": "Notizen"
             }
           ],
           "variant": "split"
@@ -717,16 +1368,10 @@
         "updateEnabled": "auto"
       },
       "pluginVersion": "5.0.0",
-      "targets": [
-        {
-          "refId": "A"
-        }
-      ],
       "title": "Steuerung der Messung",
       "type": "volkovlabs-form-panel"
     }
   ],
-  "preload": false,
   "refresh": "",
   "schemaVersion": 40,
   "tags": [],
@@ -734,13 +1379,13 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
-    "to": "now"
+    "from": "2024-10-15T09:15:30.052Z",
+    "to": "2025-06-28T09:15:30.052Z"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Messung",
-  "uid": "aed13cc2wvh1cc",
-  "version": 6,
+  "title": "MessungFinal01",
+  "uid": "aed13cc2wvh3cg",
+  "version": 5,
   "weekStart": ""
 }
