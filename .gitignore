@@ -11,6 +11,7 @@ Docker/**/*.js.map
 *.log
 *.db
 *.wasm
+*.asv
 
 # Ignoriere node_modules in proxy
 Docker/proxy/node_modules/

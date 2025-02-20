@@ -38,14 +38,16 @@ try
     while i <= 200
         % Einfache Daten generieren (Zeitstempel hinzufügen)
         timeStampMinusMinutes = (posixtime(datetime('now')));
-        timeStampTelegraf_ms = int64((posixtime(datetime('now'))-3600) * 1000);
+        timeStampTelegraf_ms = ((posixtime(datetime('now'))-3600) * 1000);
 
 
         normalNow = datetime(timeStampMinusMinutes, 'ConvertFrom', 'posixtime');
-        disp(['Normale Zeit: ', datestr(normalNow)]);
+        normalNow.Format = 'HH:mm:ss.SSS';
+        disp(['Normale Zeit: ', char(normalNow)]);
 
         normalEarly = datetime(timeStampTelegraf_ms/1000, 'ConvertFrom', 'posixtime');
-        disp(['frühe Zeit: ', datestr(normalEarly)]);
+        normalEarly.Format = 'HH:mm:ss.SSS';
+        disp(['frühe Zeit: ', char(normalEarly)]);
        
 
 

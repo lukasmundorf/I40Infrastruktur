@@ -30,11 +30,12 @@ while true
 
                 fprintf("Start/Stop Status: %s\n", data.startStop);
                 fprintf("Abtastrate (Hz): %d\n", data.abtastrateHz);
+                fprintf("Messungsname (Hz): %s\n", data.measurementName);
 
                 fprintf("Channels: %s\n", strjoin(data.channel, ", "));
                 fprintf("Einheiten: %s\n", strjoin(data.einheit, ", "));
                 fprintf("Messrichtungen: %s\n", strjoin(data.messrichtung, ", "));
-                
+                fprintf("Notizen: %s\n", strjoin(data.notizen, ", "));
                 fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
 
             catch ME

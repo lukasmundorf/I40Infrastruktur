@@ -25,29 +25,38 @@ app.post('/proxy', async (req, res) => {
         }
         const channels = checkboxes.slice(0, 12);
 
-        // 2. Einheiten: ch1_einheit bis ch12_einheit
+        // 2. Einheiten: ch0_einheit bis ch11_einheit
         const einheiten = [];
-        for (let i = 1; i <= 12; i++) {
+        for (let i = 0; i < 12; i++) {
             einheiten.push(req.body[`ch${i}_einheit`] || "");
         }
 
-        // 3. Messrichtungen: ch1_messrichtung bis ch12_messrichtung
+        // 3. Messrichtungen: ch0_messrichtung bis ch11_messrichtung
         const messrichtungen = [];
-        for (let i = 1; i <= 12; i++) {
+        for (let i = 0; i < 12; i++) {
             messrichtungen.push(req.body[`ch${i}_messrichtung`] || "");
         }
 
-        // 4. swich_startStop: Übergabe als String
+        // 4. Notizen: ch0_notes bis ch11_notes
+        const notizen = [];
+        for (let i = 0; i < 12; i++) {
+            notizen.push(req.body[`ch${i}_notes`] || "");
+        }
+
+        // 5. swich_startStop: Übergabe als String
         const swich_startStop = req.body.swich_startStop || "";
 
-        // 5. Sensitivities: ch1_sensitivity bis ch12_sensitivity
+        // 6. Sensitivities: ch0_sensitivity bis ch11_sensitivity
         const sensitivities = [];
-        for (let i = 1; i <= 12; i++) {
+        for (let i = 0; i < 12; i++) {
             sensitivities.push(parseFloat(req.body[`ch${i}_sensitivity`]) || 0);
         }
 
-        // 6. abtastrate_hz: als einzelne Zahl in einem Array
+        // 7. abtastrate_hz: als einzelne Zahl in einem Array
         const abtastrate_hz = [parseFloat(req.body.abtastrate_hz) || 0];
+
+        // 8. measurementName: als String
+        const measurementName = req.body.measurementName || "";
 
         // Zusammenbau des neuen MATLAB-kompatiblen Bodys
         const newBody = {
@@ -56,9 +65,11 @@ app.post('/proxy', async (req, res) => {
                 ...channels,         // Positionen 0-11: Einzelne Channels
                 ...einheiten,        // Positionen 12-23: Einheiten
                 ...messrichtungen,   // Positionen 24-35: Messrichtungen
-                swich_startStop,     // Position 36: "start" oder "stop"
-                sensitivities,       // Position 37: Array der Sensitivities (12 Werte)
-                abtastrate_hz        // Position 38: Array mit abtastrate_hz
+                ...notizen,          // Positionen 36-47: Notizen
+                swich_startStop,     // Position 48: "start" oder "stop" 
+                sensitivities,       // Position 50: Array der Sensitivities (12 Werte)
+                abtastrate_hz,       // Position 51: abtastrate_hz
+                measurementName      // Position 52: measurementName
             ]
         };
 
