@@ -306,19 +306,6 @@
           },
           {
             "hidden": false,
-            "id": "ch1_einheit",
-            "labelWidth": 5,
-            "section": "einheit",
-            "title": "CH1",
-            "tooltip": "",
-            "type": "string",
-            "uid": "af3af3a4-9a0b-461c-b34e-a5a82a33e26f",
-            "unit": "",
-            "value": "",
-            "width": 20
-          },
-          {
-            "hidden": false,
             "id": "ch0_einheit",
             "labelWidth": 5,
             "section": "einheit",
@@ -326,6 +313,19 @@
             "tooltip": "",
             "type": "string",
             "uid": "a676833d-b5a6-4102-a8fd-d888226d67a8",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "hidden": false,
+            "id": "ch1_einheit",
+            "labelWidth": 5,
+            "section": "einheit",
+            "title": "CH1",
+            "tooltip": "",
+            "type": "string",
+            "uid": "af3af3a4-9a0b-461c-b34e-a5a82a33e26f",
             "unit": "",
             "value": "",
             "width": 20
@@ -1386,6 +1386,6 @@
   "timezone": "browser",
   "title": "MessungFinal01",
   "uid": "aed13cc2wvh3cg",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }
