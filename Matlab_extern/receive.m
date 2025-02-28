@@ -1,42 +1,59 @@
-% Erstelle das Data Acquisition Objekt (neues Objekt, nicht session)
-d = daq('dt');
-% Hier können bei Bedarf erste Eingänge konfiguriert werden, falls nötig:
-% d.addinput("DT9836(00)", 0, "Voltage");
+function receive
+    %% Hauptskript
+    clear;
+    clc;
+    daqreset;  % Setzt das gesamte DAQ-Subsystem zurück
+    % Vorherige Timer löschen (falls vorhanden)
+    oldTimers = timerfind;
+    if ~isempty(oldTimers)
+        delete(oldTimers);
+    end
+    if exist('handles','var') && isfield(handles, 'd') && ~isempty(handles.d)
+        try
+            release(handles.d);
+        catch
+            clear handles.d;
+        end
+    end
 
-% MQTT-Broker-Adresse und Topic
-mqttClient = mqttclient("tcp://localhost:1884");
+    % --- Initialisierung ---
+    % Erstelle das Data Acquisition Objekt (neues Objekt, nicht session)
+    handles.d = daq('dt');
+    % Hinweis: Hier können bei Bedarf erste Eingänge konfiguriert werden, falls nötig:
+    % handles.d.addinput("DT9836(00)", 0, "Voltage");
 
-% Verbindung prüfen
-disp("Verbindung hergestellt: " + string(mqttClient.Connected));
+    % MQTT-Broker-Adresse und Topics:
+    handles.mqttClient = mqttclient("tcp://localhost:1884");
+    handles.topic = "test/control";    % Für Steuerbefehle
+    handles.dataTopic = "test/topic";    % Für das Senden von Daten
 
-% Abonniere das gewünschte Topic
-topic = "test/control";
-subscribe(mqttClient, topic);
-disp("Abonniert auf das Topic: " + topic);
+    % Verbindung prüfen und Topics abonnieren
+    disp("Verbindung hergestellt: " + string(handles.mqttClient.Connected));
+    subscribe(handles.mqttClient, handles.topic);
+    disp("Abonniert auf das Topic: " + handles.topic);
 
-% Variable zur Steuerung des Messstatus (false = nicht messen, true = messen)
-isMeasuring = false;
-% Variable, in der der zuletzt gültig verarbeitete, gefilterte Zustand gespeichert wird
-lastFilteredData = [];
+    % Variable zur Steuerung des Messstatus (false = nicht messen, true = messen)
+    handles.isMeasuring = false;
+    % Variable, in der der zuletzt gültige Zustand gespeichert wird
+    handles.lastFilteredData = [];
+    % Puffer für Messdaten (wird im Datenversand verwendet)
+    handles.measurementBuffer = [];
+    % Timer-Handle (wird später erstellt)
+    handles.measurementTimer = [];
+    % Paketgröße: Anzahl Scans, die pro gesendetem Paket zusammengefasst werden sollen
+    handles.numPointsThreshold = 1000;  
 
-% Endlosschleife zum Empfangen und Verarbeiten von Nachrichten
-while true
-    % Verfügbare Nachrichten vom abonnierten Topic lesen mit Timeout von 5 Sekunden
-    messages = read(mqttClient, Topic=topic);
-    
-    % Wenn Nachrichten vorhanden sind, diese verarbeiten
-    if ~isempty(messages)
-        for i = 1:height(messages)
-            % JSON-Payload aus der Nachricht extrahieren
-            payload = string(messages.Data(i));
-            
-            try
-                fprintf("Anzahl der Nachrichten: %d\n", height(messages));
-                % JSON-Daten decodieren
-                data = jsondecode(payload);
-
-                % Ausgabe der Originaldaten
+    % --- Hauptschleife zur Steuerung über MQTT ---
+    while true
+        % Lese Nachrichten vom Control-Topic (Timeout z.B. 5 Sekunden)
+        messages = read(handles.mqttClient, 'Topic', handles.topic);
+        
+        if ~isempty(messages)
+            for i = 1:height(messages)
+                payload = string(messages.Data(i));
                 disp(datetime("now"));
+                data = jsondecode(payload);
+                
                 fprintf("\n--- Originale Nachricht ---\n");
                 fprintf("Start/Stop Status: %s\n", data.startStop);
                 fprintf("Abtastrate (Hz): %d\n", data.abtastrateHz);
@@ -48,46 +65,27 @@ while true
                 fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
                 
                 % Prüfe, ob der empfangene Befehl dem aktuellen Status entspricht
-                if strcmpi(data.startStop, "start") && isMeasuring
+                if strcmpi(data.startStop, "start") && handles.isMeasuring
                     fprintf("\nMessung läuft bereits, 'start' wird ignoriert.\n");
-                    if ~isempty(lastFilteredData)
-                        fprintf("\n--- Nachricht nach Kürzen (letzter gültiger Stand) ---\n");
-                        fprintf("Start/Stop Status: %s\n", lastFilteredData.startStop);
-                        fprintf("Abtastrate (Hz): %d\n", lastFilteredData.abtastrateHz);
-                        fprintf("Messungsname: %s\n", lastFilteredData.measurementName);
-                        fprintf("Channels: %s\n", strjoin(lastFilteredData.channel, ", "));
-                        fprintf("Einheiten: %s\n", strjoin(lastFilteredData.einheit, ", "));
-                        fprintf("Messrichtungen: %s\n", strjoin(lastFilteredData.messrichtung, ", "));
-                        fprintf("Notizen: %s\n", strjoin(lastFilteredData.notizen, ", "));
-                        fprintf("Sensitivitäten: %s\n", mat2str(lastFilteredData.sensiArray));
-                        fprintf("Aktuelle Abtastrate: %d Hz\n", d.Rate);
+                    if ~isempty(handles.lastFilteredData)
+                        dispLastFiltered();
                     end
-                    continue; % Überspringe diese Nachricht
-                elseif strcmpi(data.startStop, "stop") && ~isMeasuring
+                    continue;
+                elseif strcmpi(data.startStop, "stop") && ~handles.isMeasuring
                     fprintf("\nMessung ist bereits gestoppt, 'stop' wird ignoriert.\n");
-                    if ~isempty(lastFilteredData)
-                        fprintf("\n--- Nachricht nach Kürzen (letzter gültiger Stand) ---\n");
-                        fprintf("Start/Stop Status: %s\n", lastFilteredData.startStop);
-                        fprintf("Abtastrate (Hz): %d\n", lastFilteredData.abtastrateHz);
-                        fprintf("Messungsname: %s\n", lastFilteredData.measurementName);
-                        fprintf("Channels: %s\n", strjoin(lastFilteredData.channel, ", "));
-                        fprintf("Einheiten: %s\n", strjoin(lastFilteredData.einheit, ", "));
-                        fprintf("Messrichtungen: %s\n", strjoin(lastFilteredData.messrichtung, ", "));
-                        fprintf("Notizen: %s\n", strjoin(lastFilteredData.notizen, ", "));
-                        fprintf("Sensitivitäten: %s\n", mat2str(lastFilteredData.sensiArray));
-                        fprintf("Aktuelle Abtastrate: %d Hz\n", d.Rate);
+                    if ~isempty(handles.lastFilteredData)
+                        dispLastFiltered();
                     end
-                    continue; % Überspringe die Aktualisierung der Arrays
+                    continue;
                 end
                 
-                % Falls "start" empfangen wird, wird der Zustand neu gefiltert und gespeichert.
+                % Bei 'start' den Zustand neu filtern und das DAQ-Objekt updaten:
                 if strcmpi(data.startStop, "start")
-                    % Verarbeite den Channel-Array: extrahiere die Zahlen und sortiere diese
+                    % Filtere die Channels:
                     channels = data.channel;
                     channelNumbers = [];
                     for k = 1:length(channels)
                         if ~isempty(channels{k})
-                            % Entferne den Präfix "ch" und wandle den Rest in eine Zahl um
                             numStr = regexprep(channels{k}, '^ch', '');
                             numVal = str2double(numStr);
                             if ~isnan(numVal)
@@ -95,42 +93,30 @@ while true
                             end
                         end
                     end
-
-                    % Sortiere den Zahlen-Array
                     channelNumbers = sort(channelNumbers);
-
-                    % Bestimme die zu behaltenden Indizes in den anderen Arrays.
-                    % Da die Kanalnummern 0-basiert sind, entspricht Index = Kanalnummer + 1.
                     activeIdx = channelNumbers + 1;
-
-                    % Filtere die Arrays "einheit", "messrichtung", "notizen" und "sensiArray"
+                    
                     data.einheit      = data.einheit(activeIdx);
                     data.messrichtung = data.messrichtung(activeIdx);
                     data.notizen      = data.notizen(activeIdx);
                     data.sensiArray   = data.sensiArray(activeIdx);
-
-                    % Überschreibe das Feld 'channel' mit den sortierten Zahlen (als Strings)
                     data.channel = arrayfun(@(x) num2str(x), channelNumbers, 'UniformOutput', false);
-
+                    
                     % Aktualisiere im DAQ-Objekt die aktiven Kanäle:
-                    % Entferne zunächst alle vorhandenen Eingänge.
-                    while ~isempty(d.Channels)
-                        d.removechannel(1);
+                    while ~isempty(handles.d.Channels)
+                        handles.d.removechannel(1);
                     end
-                    % Füge für jeden aktiven Kanal einen neuen Eingang hinzu.
                     for ch = channelNumbers
-                        d.addinput("DT9836(00)", ch, "Voltage");
+                        handles.d.addinput("DT9836(00)", ch, "Voltage");
                     end
                     disp("Aktuell konfigurierte Channels im DAQ-Objekt:");
-                    disp(d.Channels);
-
-                    % Abtastrate am DAQ-Objekt anpassen und in den Daten speichern
-                    d.Rate = data.abtastrateHz;
+                    disp(handles.d.Channels);
                     
-                    % Speichere den gefilterten Zustand als letzten gültigen Stand, inklusive Abtastrate
-                    lastFilteredData = data;
+                    % Setze die Abtastrate am DAQ-Objekt
+                    handles.d.Rate = data.abtastrateHz;
+                    % Speichere den gefilterten Zustand als letzten gültigen Stand
+                    handles.lastFilteredData = data;
                     
-                    % Ausgabe der gefilterten Daten (nur aktive Channels) inklusive aktueller Abtastrate
                     fprintf("\n--- Nachricht nach Kürzen ---\n");
                     fprintf("Start/Stop Status: %s\n", data.startStop);
                     fprintf("Abtastrate (Hz): %d\n", data.abtastrateHz);
@@ -140,32 +126,155 @@ while true
                     fprintf("Messrichtungen: %s\n", strjoin(data.messrichtung, ", "));
                     fprintf("Notizen: %s\n", strjoin(data.notizen, ", "));
                     fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
-                    fprintf("Aktuelle Abtastrate: %d Hz\n", d.Rate);
+                    fprintf("Aktuelle Abtastrate: %d Hz\n", handles.d.Rate);
+                    
+                    % Sende Metadaten per MQTT (über handles.dataTopic)
+                    sendMetadata();
+                    pause(1);
+                    
+                    % Starte das DAQ-Objekt und den Datenversand-Timer (alle 2 Sekunden)
+                    startMeasurement();
+                    handles.isMeasuring = true;
                 end
                 
-                % Steuerung der Messung anhand des Feldes startStop
-                if strcmpi(data.startStop, "start")
-                    isMeasuring = true;
-                    fprintf("\nMessung wird gestartet...\n");
-                    % Hier kann der Start der eigentlichen Messung implementiert werden.
-                elseif strcmpi(data.startStop, "stop")
-                    isMeasuring = false;
-                    fprintf("\nMessung wird gestoppt...\n");
-                    % Hier kann der Stopp der Messung implementiert werden.
-                else
-                    fprintf("\nUnbekannter Start/Stop Befehl: %s\n", data.startStop);
+                if strcmpi(data.startStop, "stop")
+                    stopMeasurement();
+                    handles.isMeasuring = false;
                 end
-                                
-            catch ME
-                % Falls Decodierung fehlschlägt, Payload direkt ausgeben
-                fprintf("[%s] %s: Fehler beim Verarbeiten des Payloads: %s\n", ...
-                    datestr(messages.Time(i), 'HH:MM:SS'), ...
-                    messages.Topic(i), ...
-                    payload);
             end
+        end
+        pause(0.5);
+    end
+
+    %% Funktion zum Senden der Metadaten
+    function sendMetadata()
+        % Diese Funktion erstellt für jeden aktiven Channel aus handles.lastFilteredData
+        % ein JSON-Paket und sendet es per MQTT über handles.dataTopic.
+        %
+        % Es wird angenommen, dass handles.lastFilteredData folgende Felder enthält:
+        %   - channel: Zellenarray mit Kanalnummern als Strings (z. B. {"0", "2", ...})
+        %   - einheit, messrichtung, notizen: Zellenarrays
+        %   - sensiArray: numerischer Array
+        %   - measurementName: String
+        %
+        % Für den Zeitstempel verwenden wir die aktuelle Unixzeit in Millisekunden.
+        metadata = handles.lastFilteredData;
+        t = posixtime(datetime('now', 'TimeZone', 'local'));
+        t_ms = round(t * 1000);
+        
+        % Für jeden Channel:
+        for idx = 1:length(metadata.channel)
+            data_struct = struct(...
+                'ChannelName', sprintf('ch%s', metadata.channel{idx}), ...
+                'time', t_ms + idx, ...  % Leicht erhöhter Zeitstempel
+                'sensitivity', num2str(metadata.sensiArray(idx)), ...
+                'messrichtung', metadata.messrichtung{idx}, ...
+                'notizen', metadata.notizen{idx}, ...
+                'einheit', metadata.einheit{idx}, ...
+                'dataType', 'metadata', ...
+                'measurementName', metadata.measurementName);
+            
+            json_str = jsonencode(data_struct);
+            disp(['Gesendete Metadaten: ', json_str]);
+            write(handles.mqttClient, handles.dataTopic, json_str);
         end
     end
 
-    % Kurze Pause, um die CPU-Auslastung zu reduzieren
-    pause(0.5);
+    %% Verschachtelte Funktionen für Timer-Steuerung
+
+    % startMeasurement() startet das DAQ-Objekt und einen Timer, der alle 2 Sekunden sendData() aufruft.
+    function startMeasurement()
+        % Starte das DAQ-Objekt im kontinuierlichen Modus
+        start(handles.d, "continuous");
+        pause(2);  % Warte 2 Sekunden, damit das DAQ-Objekt initial Daten sammeln kann
+
+        if isempty(handles.measurementTimer) || ~isvalid(handles.measurementTimer)
+            handles.measurementTimer = timer('ExecutionMode', 'fixedRate', ...
+                'Period', 2, ...  % Alle 2 Sekunden
+                'TimerFcn', @sendData);
+            start(handles.measurementTimer);
+        end
+    end
+
+    % stopMeasurement() stoppt und löscht den Timer.
+    function stopMeasurement()
+        stop(handles.d);
+        if ~isempty(handles.measurementTimer) && isvalid(handles.measurementTimer)
+            stop(handles.measurementTimer);
+            delete(handles.measurementTimer);
+            handles.measurementTimer = [];
+        end
+    end
+
+    % sendData() liest die Messdaten vom DAQ-Objekt ein, fügt sie einem Puffer hinzu und
+    % sendet in Paketen der vorgegebenen Größe (handles.numPointsThreshold) die Daten per MQTT.
+    function sendData(~, ~)
+        try
+            pause(0.2);
+            % Ausgabe des Bufferstatus vor dem Lesen:
+            disp("Vor read: ");
+            disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
+            disp(datetime("now"));
+            scans = handles.d.NumScansAvailable;
+            
+            conversionTime = tic;  % Start der Zeitmessung (read bis write)
+            [ScanData, triggerTime] = handles.d.read("all", "OutputFormat", "Timetable");
+            disp("Nach read: ");
+            disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
+            
+            % Berechne den Unix-Zeitstempel (in Millisekunden)
+            timeVec = posixtime(triggerTime + ScanData.Time) * 1000 - 3600*1000;
+            Ttime = table(int64(timeVec), 'VariableNames', {'time'});
+            
+            % Extrahiere die Spannungsdaten und wandle sie in eine Tabelle um.
+            voltageData = table2array(ScanData);
+            % Verwende die aktiv gefilterten Kanalnummern aus lastFilteredData für die Feldnamen.
+            activeChannels = handles.lastFilteredData.channel;  % z. B. {"0", "2", "4", "8", "10"}
+            varNames = cellfun(@(ch) sprintf('voltage%s', ch), activeChannels, 'UniformOutput', false);
+            Tvolt = array2table(voltageData, 'VariableNames', varNames);
+            
+            % Kombiniere Zeit und Spannungsdaten.
+            Tcombined = [Ttime, Tvolt];
+            
+            % Wandle die kombinierte Tabelle in ein Struct-Array um (jede Zeile ein Struct).
+            newData = table2struct(Tcombined, 'ToScalar', false);
+            
+            % Füge für jedes Struct zusätzliche Felder hinzu:
+            [newData.dataType] = deal("data");
+            [newData.measurementName] = deal(handles.lastFilteredData.measurementName);
+            
+            % Hänge die neuen Daten an den Puffer an.
+            handles.measurementBuffer = [handles.measurementBuffer; newData(:)];
+            
+            % Sende Pakete, solange genügend Elemente im Puffer vorhanden sind.
+            while numel(handles.measurementBuffer) >= handles.numPointsThreshold
+                packet = handles.measurementBuffer(1:handles.numPointsThreshold);
+                handles.measurementBuffer(1:handles.numPointsThreshold) = [];
+                
+                jsonStr = jsonencode(packet);
+                write(handles.mqttClient, handles.dataTopic, jsonStr);
+                %fprintf('Gesendetes Datenpaket: %s\n', jsonStr);
+            end
+            
+            % Messe die verstrichene Zeit von read bis Ende des aktuellen Schleifendurchlaufs
+            actualTime = toc(conversionTime);
+            performance = scans / actualTime;  % gesendete Scans pro Sekunde
+            disp(['Performance: ' num2str(performance) ' Scans/s']);
+        catch ME
+            fprintf('Fehler in sendData: %s\n', ME.message);
+        end
+    end
+
+    function dispLastFiltered()
+        fprintf("\n--- Nachricht nach Kürzen (letzter gültiger Stand) ---\n");
+        fprintf("Start/Stop Status: %s\n", handles.lastFilteredData.startStop);
+        fprintf("Abtastrate (Hz): %d\n", handles.lastFilteredData.abtastrateHz);
+        fprintf("Messungsname: %s\n", handles.lastFilteredData.measurementName);
+        fprintf("Channels: %s\n", strjoin(handles.lastFilteredData.channel, ", "));
+        fprintf("Einheiten: %s\n", strjoin(handles.lastFilteredData.einheit, ", "));
+        fprintf("Messrichtungen: %s\n", strjoin(handles.lastFilteredData.messrichtung, ", "));
+        fprintf("Notizen: %s\n", strjoin(handles.lastFilteredData.notizen, ", "));
+        fprintf("Sensitivitäten: %s\n", mat2str(handles.lastFilteredData.sensiArray));
+        fprintf("Aktuelle Abtastrate: %d Hz\n", handles.d.Rate);
+    end
 end
