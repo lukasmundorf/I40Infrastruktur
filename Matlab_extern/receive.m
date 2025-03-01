@@ -196,15 +196,78 @@ function receive
         end
     end
 
-    % stopMeasurement() stoppt und löscht den Timer.
+% stopMeasurement() stoppt und löscht den Timer.
     function stopMeasurement()
+        % Stoppe das DAQ-Objekt, damit keine weiteren Scans mehr erfolgen.
         stop(handles.d);
+        disp('DAQ-Objekt gestoppt.');
+
+        % Stoppe den Timer (falls er läuft)
         if ~isempty(handles.measurementTimer) && isvalid(handles.measurementTimer)
             stop(handles.measurementTimer);
+            disp('Timer gestoppt.');
+        end
+
+        % Prüfe, ob noch Scans im DAQ-Puffer vorhanden sind.
+        if handles.d.NumScansAvailable > 0
+            disp('Flush: Zusätzliche Scans werden vom DAQ gelesen ...');
+            [ScanData, triggerTime] = handles.d.read("all", "OutputFormat", "Timetable");
+            if ~isempty(ScanData)
+                % Verarbeitung analog zur sendData()-Funktion:
+                timeVec = posixtime(triggerTime + ScanData.Time) * 1000 - 3600*1000;
+                Ttime = table(int64(timeVec), 'VariableNames', {'time'});
+                voltageData = table2array(ScanData);
+                nChannels = size(voltageData, 2);
+
+                % Verwende die aktiven Kanäle aus lastFilteredData für die Spaltennamen:
+                activeChannels = handles.lastFilteredData.channel;
+                varNames = cellfun(@(ch) sprintf('voltage%s', ch), activeChannels, 'UniformOutput', false);
+                Tvolt = array2table(voltageData, 'VariableNames', varNames);
+                Tcombined = [Ttime, Tvolt];
+
+                newData = table2struct(Tcombined, 'ToScalar', false);
+                [newData.dataType] = deal("data");
+                [newData.measurementName] = deal(handles.lastFilteredData.measurementName);
+
+                % Hänge die neuen Daten an den Buffer an:
+                handles.measurementBuffer = [handles.measurementBuffer; newData(:)];
+            else
+                disp('Keine Scans zum Flush vorhanden.');
+            end
+        else
+            disp('Keine zusätzlichen Scans verfügbar.');
+        end
+
+        % Sende den Buffer in Paketen der Größe handles.numPointsThreshold
+        flushSize = handles.numPointsThreshold;
+        while numel(handles.measurementBuffer) >= flushSize
+            packet = handles.measurementBuffer(1:flushSize);
+            handles.measurementBuffer(1:flushSize) = [];
+
+            jsonStr = jsonencode(packet);
+            write(handles.mqttClient, handles.dataTopic, jsonStr);
+            fprintf('Gesendetes Datenpaket: %s\n', jsonStr);
+        end
+
+        % Falls noch weniger als flushSize übrig sind, sende diese als Rest.
+        if ~isempty(handles.measurementBuffer)
+            jsonStr = jsonencode(handles.measurementBuffer);
+            write(handles.mqttClient, handles.dataTopic, jsonStr);
+            fprintf('Gesendetes Restdatenpaket (Rest): %s\n', jsonStr);
+        end
+
+        % Jetzt Buffer explizit leeren, damit wirklich keine leeren Elemente übrig bleiben:
+        handles.measurementBuffer = [];
+        disp('Buffer komplett geleert.');
+
+        % Lösche den Timer und setze den Timer-Handle zurück.
+        if ~isempty(handles.measurementTimer) && isvalid(handles.measurementTimer)
             delete(handles.measurementTimer);
+            disp('Timer gelöscht.');
             handles.measurementTimer = [];
         end
     end
+
 
     % sendData() liest die Messdaten vom DAQ-Objekt ein, fügt sie einem Puffer hinzu und
     % sendet in Paketen der vorgegebenen Größe (handles.numPointsThreshold) die Daten per MQTT.
