@@ -18,7 +18,6 @@ services:
     image: eclipse-mosquitto
     container_name: mosquitto
     ports:
-    
       - "1884:1884"
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
