@@ -17,6 +17,7 @@ signalFrequency2 = 0.3; % Frequenz für Sensor2 in Hz
 amplitude1 = 1; % Amplitude für Sensor1
 amplitude2 = 2; % Amplitude für Sensor2
 dt = 1 / samplingRate; % Abtastintervall
+nanoConversion = 1000000;
 
 % Geschlossene Funktion (Closure) für das Signal-Update erstellen
 signalUpdater = createSignalUpdater(amplitude1, signalFrequency1, amplitude2, signalFrequency2, dt);
@@ -38,14 +39,14 @@ try
     while i <= 200
         % Einfache Daten generieren (Zeitstempel hinzufügen)
         timeStampMinusMinutes = (posixtime(datetime('now')));
-        timeStampTelegraf_ms = ((posixtime(datetime('now'))-3600) * 1000);
+        timeStampTelegraf_ms = ((posixtime(datetime('now'))-3600) * 1000*nanoConversion);
 
 
         normalNow = datetime(timeStampMinusMinutes, 'ConvertFrom', 'posixtime');
         normalNow.Format = 'HH:mm:ss.SSS';
         disp(['Normale Zeit: ', char(normalNow)]);
 
-        normalEarly = datetime(timeStampTelegraf_ms/1000, 'ConvertFrom', 'posixtime');
+        normalEarly = datetime(timeStampTelegraf_ms/(1000*nanoConversion), 'ConvertFrom', 'posixtime');
         normalEarly.Format = 'HH:mm:ss.SSS';
         disp(['frühe Zeit: ', char(normalEarly)]);
        
@@ -58,13 +59,15 @@ try
         sensor1Data = struct('time', timeStampTelegraf_ms, ...
                              'Sensor1', sensor1Value, ...
                              'location', 'Room1', ...
-                             'device', 'DeviceA');
+                             'device', 'DeviceA',...
+                             'measurementName', 'test2');
 
         % Sensor2-Daten
         sensor2Data = struct('time', timeStampTelegraf_ms, ...
                              'Sensor2', sensor2Value, ...
                              'location', 'Room2', ...
-                             'device', 'DeviceB');
+                             'device', 'DeviceB',...
+                             'measurementName', 'test2');
 
         % JSON-Daten für Sensor1 senden
         payload1 = jsonencode(sensor1Data);

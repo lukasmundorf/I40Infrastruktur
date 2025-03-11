@@ -1,6 +1,5 @@
 function receive
     %% Hauptskript
-    clear;
     clc;
     daqreset;  % Setzt das gesamte DAQ-Subsystem zurück
     % Vorherige Timer löschen (falls vorhanden)
@@ -42,6 +41,8 @@ function receive
     handles.measurementTimer = [];
     % Paketgröße: Anzahl Scans, die pro gesendetem Paket zusammengefasst werden sollen
     handles.numPointsThreshold = 1000;  
+    %Zusätzlicher Wert zur Umrechnung von ms in ns
+    msToNs = 1000000;
 
     % --- Hauptschleife zur Steuerung über MQTT ---
     while true
@@ -160,7 +161,7 @@ function receive
         % Für den Zeitstempel verwenden wir die aktuelle Unixzeit in Millisekunden.
         metadata = handles.lastFilteredData;
         t = posixtime(datetime('now', 'TimeZone', 'local'));
-        t_ms = round(t * 1000);
+        t_ms = round(t * 1000 * msToNs);
         
         % Für jeden Channel:
         for idx = 1:length(metadata.channel)
@@ -214,7 +215,7 @@ function receive
             [ScanData, triggerTime] = handles.d.read("all", "OutputFormat", "Timetable");
             if ~isempty(ScanData)
                 % Verarbeitung analog zur sendData()-Funktion:
-                timeVec = posixtime(triggerTime + ScanData.Time) * 1000 - 3600*1000;
+                timeVec = posixtime(triggerTime + ScanData.Time) * 1000 *msToNs - 3600*1000*msToNs;
                 Ttime = table(int64(timeVec), 'VariableNames', {'time'});
                 voltageData = table2array(ScanData);
                 nChannels = size(voltageData, 2);
@@ -286,7 +287,7 @@ function receive
             disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
             
             % Berechne den Unix-Zeitstempel (in Millisekunden)
-            timeVec = posixtime(triggerTime + ScanData.Time) * 1000 - 3600*1000;
+            timeVec = posixtime(triggerTime + ScanData.Time) * 1000 * msToNs - 3600 * 1000 * msToNs; %Zeitzonen- Umrechnung -> immer im Debug nachschauen!
             Ttime = table(int64(timeVec), 'VariableNames', {'time'});
             
             % Extrahiere die Spannungsdaten und wandle sie in eine Tabelle um.
