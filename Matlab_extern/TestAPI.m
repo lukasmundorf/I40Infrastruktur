@@ -25,8 +25,8 @@ influxURL = 'http://localhost:8086/api/v2/query?orgID=4c0bacdd5f5d7868';
 token     = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
 
 %% Flux-Abfrage definieren: Letzte 15 Minuten
-fluxQueryMetadata = 'from(bucket: "my-bucket") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "test11" and r.dataType == "metadata")';  %Query für Metadaten
-fluxQueryMatlabData = 'from(bucket: "my-bucket") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "test11" and r.dataType == "data")';    %Query für Datensatz aus Matlab
+fluxQueryMetadata = 'from(bucket: "my-bucket") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "test12" and r.dataType == "metadata")';  %Query für Metadaten
+fluxQueryMatlabData = 'from(bucket: "my-bucket") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "test12" and r.dataType == "data")';    %Query für Datensatz aus Matlab
 
 %welche nehmen? => Rechte Seite ändern!
 fluxQuery = fluxQueryMetadata;
@@ -50,7 +50,7 @@ try
     data = webwrite(influxURL, payload, options);
     %data = [];
     fprintf('Antwort erhalten:\n');
-    disp(data);
+    %disp(data);
     if ~isempty(data)
         response = "Erfolg";
         save('InfluxMatlabMetaDataQuery.mat', 'data');
