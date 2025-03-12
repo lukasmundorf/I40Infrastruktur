@@ -1,6 +1,8 @@
 clearvars;
 daqreset;
 
+%%Versenden eines einzelenen Datenpaketes zur Veranschaulichung
+
 % MQTT Client für MATLAB erstellen und konfigurieren
 mqttClient = mqttclient("tcp://localhost:1884");
 
@@ -78,18 +80,4 @@ write(mqttClient, topic, jsonStr);
 disp('MQTT-Datenversand abgeschlossen.');
 
 
-
-
-% pause(1);
-% ScanData = a.read("all","OutputFormat","Timetable");
-% ScanData_acc = [ScanData_acc;ScanData];
-
-
-
-% scanData = read(a,5);
-% disp(a);
-% disp(scanData);
-% disp(scanData.Time);
-% disp(scanData.(1));
-% 
 
