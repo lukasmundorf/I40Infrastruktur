@@ -1241,6 +1241,486 @@
           },
           {
             "allowCustomValue": false,
+            "id": "ch0_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH0",
+            "tooltip": "",
+            "type": "select",
+            "uid": "36e51d18-8faf-4826-afb6-833370ed3e95",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch1_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH1",
+            "tooltip": "",
+            "type": "select",
+            "uid": "97da9142-bf68-400c-9e0d-aa04c0b1d7e8",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch2_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH2",
+            "tooltip": "",
+            "type": "select",
+            "uid": "11514b38-0002-47f9-a642-dfc0bc7247fa",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch3_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH3",
+            "tooltip": "",
+            "type": "select",
+            "uid": "b3364c95-1107-4dba-b262-181cc55ee7c4",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch4_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH4",
+            "tooltip": "",
+            "type": "select",
+            "uid": "d10adcfc-6c99-47d5-8c3c-02bf3db69ec0",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch5_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH5",
+            "tooltip": "",
+            "type": "select",
+            "uid": "9e22fd69-e9e2-4fe8-b8b5-99c68a132541",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch6_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH6",
+            "tooltip": "",
+            "type": "select",
+            "uid": "f987a821-5754-47a4-be17-eb6cf66a2129",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch7_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH7",
+            "tooltip": "",
+            "type": "select",
+            "uid": "d00013ba-f74a-4721-860c-4a88d04f452d",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch8_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH8",
+            "tooltip": "",
+            "type": "select",
+            "uid": "8348e269-b436-4123-948a-bace6c3879a7",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch9_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH9",
+            "tooltip": "",
+            "type": "select",
+            "uid": "a5f02402-00a5-47a7-b2cb-3e963efa8836",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch10_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH10",
+            "tooltip": "",
+            "type": "select",
+            "uid": "aabd1966-d137-413e-b5bd-883f9b6ad225",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
+            "id": "ch11_measurementQuantity",
+            "labelWidth": 5,
+            "options": [
+              {
+                "id": "Sync_Signal",
+                "label": "Sync_Signal",
+                "type": "string",
+                "value": "Sync_Signal"
+              },
+              {
+                "id": "Displacement",
+                "label": "Displacement",
+                "type": "string",
+                "value": "Displacement"
+              },
+              {
+                "id": "Force",
+                "label": "Force",
+                "type": "string",
+                "value": "Force"
+              },
+              {
+                "id": "Acceleration",
+                "label": "Acceleration",
+                "type": "string",
+                "value": "Acceleration"
+              }
+            ],
+            "optionsSource": "Custom",
+            "section": "measurementQuantity",
+            "title": "CH11",
+            "tooltip": "",
+            "type": "select",
+            "uid": "fad98661-0d69-4496-8508-49405e34f0e8",
+            "unit": "",
+            "value": "",
+            "width": 20
+          },
+          {
+            "allowCustomValue": false,
             "id": "swich_startStop",
             "labelWidth": 10,
             "options": [
@@ -1323,6 +1803,10 @@
             {
               "id": "notizen",
               "name": "Notizen"
+            },
+            {
+              "id": "measurementQuantity",
+              "name": "Messung"
             }
           ],
           "variant": "split"
@@ -1386,6 +1870,6 @@
   "timezone": "browser",
   "title": "MessungFinal01",
   "uid": "aed13cc2wvh3cg",
-  "version": 6,
+  "version": 7,
   "weekStart": ""
 }

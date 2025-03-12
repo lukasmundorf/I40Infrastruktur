@@ -21,11 +21,15 @@
 %   response - Die Antwort von InfluxDB (im CSV-Format)
 
 %% Konfiguration
-influxURL = 'http://host.docker.internal:8086/api/v2/query?orgID=4c0bacdd5f5d7868';
-token     = 'ON4VeH32hhjfBTeDkbRL6nlDs-Cy6R4GgvRxWDodQlKv7-CkqQh_dUy5_XaYTj-lxH5afuxNeBzdgaCejmQ34Q==';
+influxURL = 'http://localhost:8086/api/v2/query?orgID=4c0bacdd5f5d7868';
+token     = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
 
 %% Flux-Abfrage definieren: Letzte 15 Minuten
-fluxQuery = 'from(bucket: "my-bucket") |> range(start: 2025-03-06T12:50:06Z, stop: 2025-03-06T12:50:07Z)  |> filter(fn: (r) => r._measurement == "test4")  |> filter(fn: (r) => r._field == "voltage0")  |> count()';
+fluxQueryMetadata = 'from(bucket: "my-bucket") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "test10" and r.dataType == "metadata")';  %Query für Metadaten
+fluxQueryMatlabData = 'from(bucket: "my-bucket") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "test10" and r.dataType == "data")';    %Query für Datensatz aus Matlab
+
+%welche nehmen? => Rechte Seite ändern!
+fluxQuery = fluxQueryMatlabData;
 
 %% Payload vorbereiten
 payload = struct(...
@@ -46,9 +50,10 @@ try
     data = webwrite(influxURL, payload, options);
     %data = [];
     fprintf('Antwort erhalten:\n');
-    disp(data);
+    %disp(data);
     if ~isempty(data)
         response = "Erfolg";
+        save('InfluxMatlabDataQuery.mat', 'data');
     else
         response = "Keine Daten übertragen";
     end

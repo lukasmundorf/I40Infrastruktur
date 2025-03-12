@@ -43,33 +43,50 @@ app.post('/proxy', async (req, res) => {
             notizen.push(req.body[`ch${i}_notes`] || "");
         }
 
-        // 5. swich_startStop: Übergabe als String
+        // 5. measurementQuantity: ch0_measurementQuantity bis ch11_measurementQuantity
+        const measurementQuantity = [];
+        for (let i = 0; i < 12; i++) {
+            measurementQuantity.push(req.body[`ch${i}_measurementQuantity`] || "");
+        }
+
+        // 6. swich_startStop: Übergabe als String
         const swich_startStop = req.body.swich_startStop || "";
 
-        // 6. Sensitivities: ch0_sensitivity bis ch11_sensitivity
+        // 7. Sensitivities: ch0_sensitivity bis ch11_sensitivity
         const sensitivities = [];
         for (let i = 0; i < 12; i++) {
             sensitivities.push(parseFloat(req.body[`ch${i}_sensitivity`]) || 0);
         }
 
-        // 7. abtastrate_hz: als einzelne Zahl in einem Array
+        // 8. abtastrate_hz: als einzelne Zahl in einem Array
         const abtastrate_hz = [parseFloat(req.body.abtastrate_hz) || 0];
 
-        // 8. measurementName: als String
+        // 9. measurementName: als String
         const measurementName = req.body.measurementName || "";
 
-        // Zusammenbau des neuen MATLAB-kompatiblen Bodys
+        // Zusammenbau des neuen MATLAB-kompatiblen Bodys:
+        // Positionen:
+        //  0-11: channels
+        // 12-23: einheiten
+        // 24-35: messrichtungen
+        // 36-47: notizen
+        // 48-59: measurementQuantity
+        // 60: swich_startStop
+        // 61: sensitivities (als Array)
+        // 62: abtastrate_hz (als Array)
+        // 63: measurementName
         const newBody = {
             nargout: 1,
             rhs: [
-                ...channels,         // Positionen 0-11: Einzelne Channels
-                ...einheiten,        // Positionen 12-23: Einheiten
-                ...messrichtungen,   // Positionen 24-35: Messrichtungen
-                ...notizen,          // Positionen 36-47: Notizen
-                swich_startStop,     // Position 48: "start" oder "stop" 
-                sensitivities,       // Position 50: Array der Sensitivities (12 Werte)
-                abtastrate_hz,       // Position 51: abtastrate_hz
-                measurementName      // Position 52: measurementName
+                ...channels,           // 0-11: Channels
+                ...einheiten,          // 12-23: Einheiten
+                ...messrichtungen,     // 24-35: Messrichtungen
+                ...notizen,            // 36-47: Notizen
+                ...measurementQuantity, // 48-59: MeasurementQuantity
+                swich_startStop,       // 60: swich_startStop
+                sensitivities,         // 61: Sensitivities
+                abtastrate_hz,         // 62: Abtastrate_hz
+                measurementName        // 63: MeasurementName
             ]
         };
 

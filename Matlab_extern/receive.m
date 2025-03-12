@@ -63,6 +63,7 @@ function receive
                 fprintf("Einheiten: %s\n", strjoin(data.einheit, ", "));
                 fprintf("Messrichtungen: %s\n", strjoin(data.messrichtung, ", "));
                 fprintf("Notizen: %s\n", strjoin(data.notizen, ", "));
+                fprintf("measurementQuantity: %s\n", strjoin(data.measurementQuantity, ", "));
                 fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
                 
                 % Prüfe, ob der empfangene Befehl dem aktuellen Status entspricht
@@ -101,6 +102,7 @@ function receive
                     data.messrichtung = data.messrichtung(activeIdx);
                     data.notizen      = data.notizen(activeIdx);
                     data.sensiArray   = data.sensiArray(activeIdx);
+                    data.measurementQuantity = data.measurementQuantity(activeIdx);
                     data.channel = arrayfun(@(x) num2str(x), channelNumbers, 'UniformOutput', false);
                     
                     % Aktualisiere im DAQ-Objekt die aktiven Kanäle:
@@ -126,6 +128,7 @@ function receive
                     fprintf("Einheiten: %s\n", strjoin(data.einheit, ", "));
                     fprintf("Messrichtungen: %s\n", strjoin(data.messrichtung, ", "));
                     fprintf("Notizen: %s\n", strjoin(data.notizen, ", "));
+                    fprintf("measurementQuantity: %s\n", strjoin(data.measurementQuantity, ", "));
                     fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
                     fprintf("Aktuelle Abtastrate: %d Hz\n", handles.d.Rate);
                     
@@ -171,6 +174,7 @@ function receive
                 'sensitivity', num2str(metadata.sensiArray(idx)), ...
                 'messrichtung', metadata.messrichtung{idx}, ...
                 'notizen', metadata.notizen{idx}, ...
+                'measurementQuantity', metadata.measurementQuantity{idx}, ...
                 'einheit', metadata.einheit{idx}, ...
                 'dataType', 'metadata', ...
                 'measurementName', metadata.measurementName);
@@ -316,10 +320,10 @@ function receive
                 handles.measurementBuffer(1:handles.numPointsThreshold) = [];
                 
                 jsonStr = jsonencode(packet);
+                %disp(jsonStr);
                 write(handles.mqttClient, handles.dataTopic, jsonStr);
                 %fprintf('Gesendetes Datenpaket: %s\n', jsonStr);
             end
-            
             % Messe die verstrichene Zeit von read bis Ende des aktuellen Schleifendurchlaufs
             actualTime = toc(conversionTime);
             performance = scans / actualTime;  % gesendete Scans pro Sekunde
@@ -338,6 +342,7 @@ function receive
         fprintf("Einheiten: %s\n", strjoin(handles.lastFilteredData.einheit, ", "));
         fprintf("Messrichtungen: %s\n", strjoin(handles.lastFilteredData.messrichtung, ", "));
         fprintf("Notizen: %s\n", strjoin(handles.lastFilteredData.notizen, ", "));
+        fprintf("measurementQuantity: %s\n", strjoin(handles.lastFilteredData.measurementQuantity, ", "));
         fprintf("Sensitivitäten: %s\n", mat2str(handles.lastFilteredData.sensiArray));
         fprintf("Aktuelle Abtastrate: %d Hz\n", handles.d.Rate);
     end
