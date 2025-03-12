@@ -32,6 +32,9 @@ measurement_settings = getStructuredMetadata();
 
 %matlabQueryData = getMatlabData();
 
+
+%% Funktionen
+
 function metadataStruct = getStructuredMetadata()
 % getStructuredMetadata - Lädt die Metadaten und formatiert sie in ein Struct.
 %
@@ -42,6 +45,7 @@ function metadataStruct = getStructuredMetadata()
 %   - SensitivityValue    (1xN double)
 %   - SensitivityUnit     (1xN String)
 %   - AdditionalNotes     (1xN String)
+%   - SampleRate          (Zahlenwert, aus der Spalte "sampleRate")
 %
 % Beispielaufruf:
 %   >> measurement_settings = getStructuredMetadata();
@@ -61,7 +65,6 @@ function metadataStruct = getStructuredMetadata()
 
     %% 5) MeasuredQuantity (1xN String)
     if ismember('measurementQuantity', metadataTabelle.Properties.VariableNames)
-        % Konvertiert gegebenenfalls Cell-Array in String-Array
         metadataStruct.MeasuredQuantity = string(metadataTabelle.measurementQuantity)';
     else
         metadataStruct.MeasuredQuantity = strings(1, anzahlChannels);
@@ -76,7 +79,6 @@ function metadataStruct = getStructuredMetadata()
 
     %% 7) SensitivityValue (1xN double)
     if ismember('sensitivity', metadataTabelle.Properties.VariableNames)
-        % Falls es als Cell vorliegt, konvertieren Sie z. B. mit cell2mat
         if iscell(metadataTabelle.sensitivity)
             metadataStruct.SensitivityValue = cell2mat(metadataTabelle.sensitivity)';
         else
@@ -98,6 +100,14 @@ function metadataStruct = getStructuredMetadata()
         metadataStruct.AdditionalNotes = string(metadataTabelle.notizen)';
     else
         metadataStruct.AdditionalNotes = strings(1, anzahlChannels);
+    end
+
+    %% 10) SampleRate (Zahlenwert)
+    if ismember('sampleRate', metadataTabelle.Properties.VariableNames)
+        % Verwenden Sie den ersten Eintrag der Spalte
+        metadataStruct.SampleRate = metadataTabelle.sampleRate(1);
+    else
+        metadataStruct.SampleRate = [];
     end
 end
 
