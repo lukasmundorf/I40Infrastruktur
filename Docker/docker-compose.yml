@@ -10,7 +10,7 @@ services:
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
       - DOCKER_INFLUXDB_INIT_PASSWORD=password
       - DOCKER_INFLUXDB_INIT_ORG=my-org
-      - DOCKER_INFLUXDB_INIT_BUCKET=my-bucket
+      - DOCKER_INFLUXDB_INIT_BUCKET=daten-roh
       - DOCKER_INFLUXDB_INIT_RETENTION=1w
     volumes:
       - influxdb-data:/var/lib/influxdb2
