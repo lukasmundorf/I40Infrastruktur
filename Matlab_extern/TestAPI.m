@@ -27,9 +27,11 @@ token     = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQd
 %% Flux-Abfrage definieren: Letzte 15 Minuten
 fluxQueryMetadata = 'from(bucket: "my-bucket") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "test12" and r.dataType == "metadata")';  %Query für Metadaten
 fluxQueryMatlabData = 'from(bucket: "my-bucket") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "test12" and r.dataType == "data")';    %Query für Datensatz aus Matlab
+fluxQueryMatlabData_short = 'from(bucket: "my-bucket") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "test12" and r.dataType == "data") |> drop(columns: ["Var1","_result","table","_start","_stop","_measurement","dataType","host","topic"])';
+
 
 %welche nehmen? => Rechte Seite ändern!
-fluxQuery = fluxQueryMetadata;
+fluxQuery = fluxQueryMatlabData_short;
 
 %% Payload vorbereiten
 payload = struct(...
@@ -53,7 +55,7 @@ try
     %disp(data);
     if ~isempty(data)
         response = "Erfolg";
-        save('InfluxMatlabMetaDataQuery.mat', 'data');
+        save('InfluxMatlabDataQuery_Short.mat', 'data');
     else
         response = "Keine Daten übertragen";
     end
