@@ -3,7 +3,7 @@
 measurement_settings = getStructuredMetadata(); % Vorbereitung Metadaten
 StructuredMatlabData = getStructuredMatlabData(measurement_settings); % Vorbereitung Messdaten
 
-%% Funktion zum Holen von Metadaten aus Influx und dann vorbereitun zur Synchronisation
+%% Funktion, um Metadaten aus Influx zu holen und richtig zu sortieren, sodass Synchronisation starten kann
 
 function metadataStruct = getStructuredMetadata()
 % getStructuredMetadata - Lädt die Metadaten und formatiert sie in ein Struct.
@@ -186,13 +186,6 @@ function metaData = getMetadata()
     metaData = load('InfluxMatlabMetaDataQuery.mat');
 end
 
-%% Funktion um Testdaten, die nichts mit der Influx zu tun haben, zu holen (zur Validierung dass der Code das richtige macht) , kann anstatt von getMatlabData() ausgewählt werden
-
-function matlabData = getMatlabValidationData()
-% Lädt die Matlab-Daten aus der Datei 'InfluxMatlabDataQuery.mat'
-    matlabData = load('ValidationTestQuery.mat');
-end
-
 %% Funktion um Messdaten aus der Influx zu querien
 
 function matlabData = getMatlabData()
@@ -200,4 +193,12 @@ function matlabData = getMatlabData()
     matlabData = load('InfluxMatlabDataQuery_Short.mat');
 end
 
+%% Funktion um Testdaten, die nichts mit der Influx zu tun haben, zu holen (zur Validierung dass der Code das richtige macht) , kann anstatt von getMatlabData() ausgewählt werden
+
+function matlabData = getMatlabValidationData()
+% Lädt die Matlab-Daten aus der Datei 'InfluxMatlabDataQuery.mat'
+    matlabData = load('ValidationTestQuery.mat');
+end
+
+%% Funktion zum richtiges Einspeisen in Influx
 
