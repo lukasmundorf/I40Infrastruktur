@@ -1,23 +1,24 @@
 %% Skript, um manuell Edge Daten in die Influx einzuschreiben, da die Verbindung nicht funktionieren wird
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData01"; 
+measurementName = "realData02"; 
 writeBucketName = "daten-roh";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
 token = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
+writeTag = 'dataType=edgeData';
 
 %% laden von Testdaten
 finishedTableSynced = load('EdgeDaten.mat');
 disp('Daten geladen')
 
 %senden von Daten an InfluxDB
-statusMessage = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, finishedTableSynced);
+statusMessage = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeTag, finishedTableSynced);
 
 
 %% Funktion zur Konvertierung von zusammengefasster synchronisierter Tabelle und Schreiben in InfluxDB in Batches
 
-function statusMessage = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, batchSize, finishedTableSynced)
+function statusMessage = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, finishedTableSynced)
     % Finde den Tabellen-Namen innerhalb des Objekts
     tableNames = fieldnames(finishedTableSynced);
     if isempty(tableNames)
@@ -28,7 +29,7 @@ function statusMessage = convertAndSendTable(measurementName, writeBucketName, o
     % Extrahiere die eigentliche Tabelle
     dataTable = finishedTableSynced.(tableName);
     
-    % Konfiguration der Zeitstempel
+    %% Konfiguration der Zeitstempel
     % Aktuelle Zeit in Nanosekunden abrufen (-1h für richtige Zeitzone)
     unixNowNs = posixtime(datetime('now')) * 1e9 - (3600 * 1e9);
     
@@ -46,10 +47,10 @@ function statusMessage = convertAndSendTable(measurementName, writeBucketName, o
     % Berechne alle Zeitstempel VEKTORISIERT
     timestampsNs = int64(unixNowNs + (0:numRows-1)' * timeStepNs);
 
-    % Starte den Timer für die Zeitabschätzung
+    %% Starte den Timer für die Zeitabschätzung
     overallTimer = tic;
     
-    % Erzeuge und sende Line Protocol in Batches
+    %% Erzeuge und sende Line Protocol in Batches
     for batchIdx = 1:numBatches
         % Start- und Endindex für diesen Batch
         startIdx = (batchIdx - 1) * batchSize + 1;
@@ -65,8 +66,8 @@ function statusMessage = convertAndSendTable(measurementName, writeBucketName, o
         batchFieldsStr = join(batchFields, ",", 2);
         
         % Erstelle das Line Protocol für diesen Batch:
-        % Format: measurementName field1=value1,field2=value2 ... timestamp
-        lineProtocol = measurementName + " " + batchFieldsStr + " " + string(batchTimestamps);
+        % Format: measurementName,tagKey=tagValue field1=value1,field2=value2 ... timestamp
+        lineProtocol = measurementName + "," + writeTag + " " + batchFieldsStr + " " + string(batchTimestamps);
         
         % Kombiniere alle Zeilen zu einem einzigen String
         writeBatch = join(lineProtocol, newline);
@@ -95,6 +96,7 @@ function statusMessage = convertAndSendTable(measurementName, writeBucketName, o
 
     end
 end
+
 
 
 %% Funktion, um Line Protocol in die Influx zu schreiben

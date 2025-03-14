@@ -27,3 +27,6 @@ Messung_gui_12plots.mlapp
 SettingsApp_gui.mlapp
 
 Daten_synchronisieren/
+
+EdgeDaten.mat
+MatlabDaten_synchronized.mat
