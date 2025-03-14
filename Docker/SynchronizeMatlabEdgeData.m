@@ -1,4 +1,4 @@
-%function SynchronizeMatlabEdgeData(measurementName, queryBucketName, writeBucketName, orgIDName)
+%function SynchronizeMatlabEdgeData(measurementName, queryBucketName, writeBucketName, orgIDName, token, sendBatchSize)
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
 measurementName = "test13"; 
@@ -7,11 +7,17 @@ writeBucketName = "daten-aufbereitet";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
 token = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
-%measurement_settings = getStructuredMetadata(); % Vorbereitung Metadaten
+queryTagMatlabData = "data";
+queryTagMetaData = "metadata";
 
-%StructuredMatlabData = getStructuredMatlabData(measurement_settings); % Vorbereitung Messdaten
+%% Importierung und Strukturierug der Daten
+% Vorbereitung Metadaten
+measurement_settings = getStructuredMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData); 
 
-%laden von synchronisierten Testdaten => nur temporär, bis syncskript eingefügt ist
+% Vorbereitung Messdaten
+StructuredMatlabData = getStructuredMatlabData(measurement_settings, measurementName, queryBucketName, orgIDName, token, queryTagMatlabData); 
+
+% laden von synchronisierten Testdaten => nur temporär, bis syncskript eingefügt ist
 finishedTableSynced = load('MatlabDaten_synchronized.mat');
 disp('daten geladen')
 
@@ -22,7 +28,7 @@ statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDN
 
 %% Funktion, um Metadaten aus Influx zu holen und richtig zu sortieren, sodass Synchronisation starten kann
 
-function metadataStruct = getStructuredMetadata()
+function metadataStruct = getStructuredMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData)
 % getStructuredMetadata - Lädt die Metadaten und formatiert sie in ein Struct.
 %
 % Es werden Daten aus der MAT-Datei 'InfluxMatlabMetaDataQuery.mat' geladen.
@@ -38,7 +44,7 @@ function metadataStruct = getStructuredMetadata()
 %   >> measurement_settings = getStructuredMetadata();
 
     % 1) Tabelle laden (aus InfluxMatlabMetaDataQuery.mat)
-    matlabQueryMetadata = getMetadata();
+    matlabQueryMetadata = getMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData);
 
     % 2) Aus dem geladenen Struct die Tabelle extrahieren.
     feldNamen       = fieldnames(matlabQueryMetadata);
@@ -100,7 +106,7 @@ end
 
 %% Funktion, um Daten aus Influx zu holen und richtig zu sortieren, sodass Synchronisation starten kann
 
-function dataTT = getStructuredMatlabData(measurement_settings)
+function dataTT = getStructuredMatlabData(measurement_settings, measurementName, queryBucketName, orgIDName, token, queryTagMatlabData)
 % getStructuredMatlabData - Formt die abgefragten Messdaten (x_field, x_value, x_time)
 % zu einer Timetable um, in der die Spalten gemäß der Kanalnummer (0 bis 11)
 % sortiert sind. Die Zeitachse wird anhand der in measurement_settings.Samplerate
@@ -120,7 +126,7 @@ function dataTT = getStructuredMatlabData(measurement_settings)
 %   dataTT: timetable mit einer Spalte pro Kanal in sortierter Reihenfolge.
 
     % 1) Große Tabelle laden (z. B. mehrere Mio. Zeilen)
-    loadedStruct = getMatlabData();  % enthält u.a. x_field, x_value, x_time
+    loadedStruct = getMatlabData(measurementName, queryBucketName, orgIDName, token, queryTagMatlabData);  % enthält u.a. x_field, x_value, x_time
     fieldNames = fieldnames(loadedStruct);
     dataTable = loadedStruct.(fieldNames{1});
 
@@ -198,14 +204,14 @@ end
 
 %% Funktion um Metadaten aus der Influx zu querien
 
-function metaData = getMetadata()
+function metaData = getMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData)
 % Lädt die Metadaten aus der Datei 'InfluxMatlabMetaDataQuery.mat'
     metaData = load('InfluxMatlabMetaDataQuery.mat');
 end
 
 %% Funktion um Messdaten aus der Influx zu querien
 
-function matlabData = getMatlabData()
+function matlabData = getMatlabData(measurementName, queryBucketName, orgIDName, token, queryTagMatlabData)
 % Lädt die Matlab-Daten aus der Datei 'InfluxMatlabDataQuery.mat'
     matlabData = load('InfluxMatlabDataQuery_Short.mat');
 end
