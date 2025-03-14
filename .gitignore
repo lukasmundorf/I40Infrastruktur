@@ -28,5 +28,6 @@ SettingsApp_gui.mlapp
 
 Daten_synchronisieren/
 
+MatlabDaten.mat
 EdgeDaten.mat
 MatlabDaten_synchronized.mat

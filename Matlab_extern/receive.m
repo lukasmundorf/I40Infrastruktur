@@ -63,7 +63,7 @@ function receive
                 fprintf("Einheiten: %s\n", strjoin(data.einheit, ", "));
                 fprintf("Messrichtungen: %s\n", strjoin(data.messrichtung, ", "));
                 fprintf("Notizen: %s\n", strjoin(data.notizen, ", "));
-                fprintf("measurementQuantity: %s\n", strjoin(data.measurementQuantity, ", "));
+                fprintf("measuredQuantity: %s\n", strjoin(data.measuredQuantity, ", "));
                 fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
                 
                 % Prüfe, ob der empfangene Befehl dem aktuellen Status entspricht
@@ -102,7 +102,7 @@ function receive
                     data.messrichtung = data.messrichtung(activeIdx);
                     data.notizen      = data.notizen(activeIdx);
                     data.sensiArray   = data.sensiArray(activeIdx);
-                    data.measurementQuantity = data.measurementQuantity(activeIdx);
+                    data.measuredQuantity = data.measuredQuantity(activeIdx);
                     data.channel = arrayfun(@(x) num2str(x), channelNumbers, 'UniformOutput', false);
                     
                     % Aktualisiere im DAQ-Objekt die aktiven Kanäle:
@@ -128,7 +128,7 @@ function receive
                     fprintf("Einheiten: %s\n", strjoin(data.einheit, ", "));
                     fprintf("Messrichtungen: %s\n", strjoin(data.messrichtung, ", "));
                     fprintf("Notizen: %s\n", strjoin(data.notizen, ", "));
-                    fprintf("measurementQuantity: %s\n", strjoin(data.measurementQuantity, ", "));
+                    fprintf("measuredQuantity: %s\n", strjoin(data.measuredQuantity, ", "));
                     fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
                     fprintf("Aktuelle Abtastrate: %d Hz\n", handles.d.Rate);
                     
@@ -174,10 +174,10 @@ function receive
                 'sensitivity', num2str(metadata.sensiArray(idx)), ...
                 'messrichtung', metadata.messrichtung{idx}, ...
                 'notizen', metadata.notizen{idx}, ...
-                'measurementQuantity', metadata.measurementQuantity{idx}, ...
+                'measuredQuantity', metadata.measuredQuantity{idx}, ...
                 'einheit', metadata.einheit{idx}, ...
                 'sampleRate', metadata.abtastrateHz, ...
-                'dataType', 'metadata', ...
+                'dataType', 'MatlabMetadata', ...
                 'measurementName', metadata.measurementName);
             
             json_str = jsonencode(data_struct);
@@ -232,7 +232,7 @@ function receive
                 Tcombined = [Ttime, Tvolt];
 
                 newData = table2struct(Tcombined, 'ToScalar', false);
-                [newData.dataType] = deal("data");
+                [newData.dataType] = deal("MatlabData");
                 [newData.measurementName] = deal(handles.lastFilteredData.measurementName);
 
                 % Hänge die neuen Daten an den Buffer an:
@@ -309,7 +309,7 @@ function receive
             newData = table2struct(Tcombined, 'ToScalar', false);
             
             % Füge für jedes Struct zusätzliche Felder hinzu:
-            [newData.dataType] = deal("data");
+            [newData.dataType] = deal("matlabData");
             [newData.measurementName] = deal(handles.lastFilteredData.measurementName);
             
             % Hänge die neuen Daten an den Puffer an.
@@ -343,7 +343,7 @@ function receive
         fprintf("Einheiten: %s\n", strjoin(handles.lastFilteredData.einheit, ", "));
         fprintf("Messrichtungen: %s\n", strjoin(handles.lastFilteredData.messrichtung, ", "));
         fprintf("Notizen: %s\n", strjoin(handles.lastFilteredData.notizen, ", "));
-        fprintf("measurementQuantity: %s\n", strjoin(handles.lastFilteredData.measurementQuantity, ", "));
+        fprintf("measuredQuantity: %s\n", strjoin(handles.lastFilteredData.measuredQuantity, ", "));
         fprintf("Sensitivitäten: %s\n", mat2str(handles.lastFilteredData.sensiArray));
         fprintf("Aktuelle Abtastrate: %d Hz\n", handles.d.Rate);
     end
