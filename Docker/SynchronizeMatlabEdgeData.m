@@ -1,14 +1,16 @@
 %function SynchronizeMatlabEdgeData(measurementName, queryBucketName, writeBucketName, orgIDName, token, sendBatchSize)
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "test13"; 
+measurementName = "realData06"; 
 queryBucketName = "daten-roh";
 writeBucketName = "daten-aufbereitet";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
 token = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
-queryTagMatlabData = "data";
-queryTagMetaData = "metadata";
+queryTagMatlabData = "matlabData";
+queryTagMetaData = "matlabMetadata";
+queryTagEdgeData = "edgeData";
+writeTagSyncedData = "dataType=synchronizedEdgeMatlab";
 
 %% Importierung und Strukturierug der Daten
 % Vorbereitung Metadaten
@@ -18,11 +20,11 @@ measurement_settings = getStructuredMetadata(measurementName, queryBucketName, o
 StructuredMatlabData = getStructuredMatlabData(measurement_settings, measurementName, queryBucketName, orgIDName, token, queryTagMatlabData); 
 
 % laden von synchronisierten Testdaten => nur temporär, bis syncskript eingefügt ist
-finishedTableSynced = load('MatlabDaten_synchronized.mat');
-disp('daten geladen')
+% finishedTableSynced = load('MatlabDaten_synchronized.mat');
+% disp('daten geladen')
 
 %senden von synchronisierter Tabelle an InfluxDB
-statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, finishedTableSynced);
+%statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeTagSyncedData, finishedTableSynced);
 
 %end
 
@@ -57,7 +59,7 @@ function metadataStruct = getStructuredMetadata(measurementName, queryBucketName
     metadataStruct = struct();
 
     % 5) MeasuredQuantity (1xN String)
-    if ismember('measurementQuantity', metadataTabelle.Properties.VariableNames)
+    if ismember('measuredQuantity', metadataTabelle.Properties.VariableNames)
         metadataStruct.MeasuredQuantity = string(metadataTabelle.measurementQuantity)';
     else
         metadataStruct.MeasuredQuantity = strings(1, anzahlChannels);
@@ -231,7 +233,7 @@ end
 
 %% Funktion zur Konvertierung von zusammengefasster synchronisierter Tabelle und Schreiben in InfluxDB in Batches
 
-function statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, batchSize, finishedTableSynced)
+function statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, finishedTableSynced)
     % Finde den Tabellen-Namen innerhalb des Objekts
     tableNames = fieldnames(finishedTableSynced);
     if isempty(tableNames)
@@ -279,8 +281,8 @@ function statusMessage = convertAndSendSyncTable(measurementName, writeBucketNam
         batchFieldsStr = join(batchFields, ",", 2);
         
         % Erstelle das Line Protocol für diesen Batch:
-        % Format: measurementName field1=value1,field2=value2 ... timestamp
-        lineProtocol = measurementName + " " + batchFieldsStr + " " + string(batchTimestamps);
+        % Format: measurementName,tagKey=tagValue field1=value1,field2=value2 ... timestamp
+        lineProtocol = measurementName + "," + writeTag + " " + batchFieldsStr + " " + string(batchTimestamps);
         
         % Kombiniere alle Zeilen zu einem einzigen String
         writeBatch = join(lineProtocol, newline);
@@ -309,6 +311,7 @@ function statusMessage = convertAndSendSyncTable(measurementName, writeBucketNam
 
     end
 end
+
 
 
 %% Funktion, um Line Protocol in die Influx zu schreiben
