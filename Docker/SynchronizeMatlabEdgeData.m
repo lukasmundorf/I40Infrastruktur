@@ -1,23 +1,27 @@
 %function SynchronizeMatlabEdgeData(measurementName, queryBucketName, writeBucketName, orgIDName, token, sendBatchSize)
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData06"; 
+measurementName = "realData08"; 
 queryBucketName = "daten-roh";
 writeBucketName = "daten-aufbereitet";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
 token = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
-queryTagMatlabData = "matlabData";
-queryTagMetaData = "matlabMetadata";
-queryTagEdgeData = "edgeData";
+queryTagMatlabData = "dataType=matlabData";    % Array an Tag-Value-Pairs in Form von jeweils eines Strings
+queryTagMetaData = "dataType=matlabMetadata";  % Array an Tag-Value-Pairs in Form von jeweils eines Strings
+queryTagEdgeData = "dataType=edgeData";        % Array an Tag-Value-Pairs in Form von jeweils eines StringsF
 writeTagSyncedData = "dataType=synchronizedEdgeMatlab";
+sampleRate_Matlab = 10000;
+sampleRate_Edge = 500;
 
 %% Importierung und Strukturierug der Daten
 % Vorbereitung Metadaten
-measurement_settings = getStructuredMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData); 
+%measurement_settings = getStructuredMatlabMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData); 
 
 % Vorbereitung Messdaten
-StructuredMatlabData = getStructuredMatlabData(measurement_settings, measurementName, queryBucketName, orgIDName, token, queryTagMatlabData); 
+%StructuredMatlabData = getStructuredInfluxData(sampleRate_Matlab, measurementName, queryBucketName, orgIDName, token, queryTagMatlabData);
+
+StructuredEdgeData = getStructuredInfluxData(sampleRate_Edge, measurementName, queryBucketName, orgIDName, token, queryTagEdgeData);
 
 % laden von synchronisierten Testdaten => nur temporär, bis syncskript eingefügt ist
 % finishedTableSynced = load('MatlabDaten_synchronized.mat');
@@ -30,8 +34,8 @@ StructuredMatlabData = getStructuredMatlabData(measurement_settings, measurement
 
 %% Funktion, um Metadaten aus Influx zu holen und richtig zu sortieren, sodass Synchronisation starten kann
 
-function metadataStruct = getStructuredMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData)
-% getStructuredMetadata - Lädt die Metadaten und formatiert sie in ein Struct.
+function metadataStruct = getStructuredMatlabMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData)
+% getStructuredMatlabMetadata - Lädt die Metadaten und formatiert sie in ein Struct.
 %
 % Es werden Daten aus der MAT-Datei 'InfluxMatlabMetaDataQuery.mat' geladen.
 % Aus der darin enthaltenen Tabelle wird ein Struct erstellt mit den Feldern:
@@ -43,7 +47,7 @@ function metadataStruct = getStructuredMetadata(measurementName, queryBucketName
 %   - SampleRate          (Zahlenwert, aus der Spalte "sampleRate")
 %
 % Beispielaufruf:
-%   >> measurement_settings = getStructuredMetadata();
+%   >> measurement_settings = getStructuredMatlabMetadata();
 
     % 1) Tabelle laden (aus InfluxMatlabMetaDataQuery.mat)
     matlabQueryMetadata = getMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData);
@@ -108,11 +112,10 @@ end
 
 %% Funktion, um Daten aus Influx zu holen und richtig zu sortieren, sodass Synchronisation starten kann
 
-function dataTT = getStructuredMatlabData(measurement_settings, measurementName, queryBucketName, orgIDName, token, queryTagMatlabData)
-% getStructuredMatlabData - Formt die abgefragten Messdaten (x_field, x_value, x_time)
+function dataTT = getStructuredInfluxData(sampleRate, measurementName, queryBucketName, orgIDName, token, queryTags)
+% getStructuredInfluxData - Formt die abgefragten Messdaten (x_field, x_value, x_time)
 % zu einer Timetable um, in der die Spalten gemäß der Kanalnummer (0 bis 11)
-% sortiert sind. Die Zeitachse wird anhand der in measurement_settings.Samplerate
-% gespeicherten Abtastrate erstellt.
+% sortiert sind. Die Zeitachse wird anhand der übergebenen Abtastrate erstellt.
 %
 % Die Tabelle wird über getMatlabData() geladen und enthält typischerweise die Spalten:
 %   - x_field: z.B. 'voltage0', 'voltage1', ... (Kanalkennung)
@@ -122,15 +125,13 @@ function dataTT = getStructuredMatlabData(measurement_settings, measurementName,
 % Voraussetzungen:
 %   - Die Query-Tabelle ist blockweise sortiert, d.h. die Daten eines Kanals
 %     stehen hintereinander, allerdings in der Reihenfolge, in der sie aus Influx kommen.
-%   - measurement_settings.Samplerate enthält die Abtastrate.
+%   - queryTags enthält die Abtastrate (z. B. 1000 Hz).
 %
 % Rückgabe:
 %   dataTT: timetable mit einer Spalte pro Kanal in sortierter Reihenfolge.
 
     % 1) Große Tabelle laden (z. B. mehrere Mio. Zeilen)
-    loadedStruct = getMatlabData(measurementName, queryBucketName, orgIDName, token, queryTagMatlabData);  % enthält u.a. x_field, x_value, x_time
-    fieldNames = fieldnames(loadedStruct);
-    dataTable = loadedStruct.(fieldNames{1});
+    dataTable = getInfluxData(measurementName, queryBucketName, orgIDName, token, queryTags);  % enthält u.a. x_field, x_value, x_time
 
     % 2) Ermitteln der eindeutigen Kanäle in der Reihenfolge, wie sie in der Tabelle vorkommen
     uniqueChannelsStable = unique(dataTable.x_field, 'stable');
@@ -183,8 +184,8 @@ function dataTT = getStructuredMatlabData(measurement_settings, measurementName,
     end
     
     % 4) Neue Zeitachse anhand der SampleRate erstellen
-    Fs = measurement_settings.Samplerate;  % z. B. 1000 Hz
-    dt = 1 / Fs;                         % Abtastintervall
+    Fs = sampleRate;  % z. B. 1000 Hz
+    dt = 1 / Fs;             % Abtastintervall
     timeArray = seconds((0:nSamples-1)' * dt);
     
     % 5) Leere Timetable initialisieren
@@ -211,13 +212,6 @@ function metaData = getMetadata(measurementName, queryBucketName, orgIDName, tok
     metaData = load('InfluxMatlabMetaDataQuery.mat');
 end
 
-%% Funktion um Messdaten aus der Influx zu querien
-
-function matlabData = getMatlabData(measurementName, queryBucketName, orgIDName, token, queryTagMatlabData)
-% Lädt die Matlab-Daten aus der Datei 'InfluxMatlabDataQuery.mat'
-    matlabData = load('InfluxMatlabDataQuery_Short.mat');
-end
-
 %% Funktion um Testdaten, die nichts mit der Influx zu tun haben, zu holen (zur Validierung dass der Code das richtige macht) , kann anstatt von getMatlabData() ausgewählt werden
 
 function matlabData = getMatlabValidationData()
@@ -225,11 +219,58 @@ function matlabData = getMatlabValidationData()
     matlabData = load('ValidationTestQuery.mat');
 end
 
-%% Funktion um Edge Daten aus der Influx zu querien
+%% Funktion um Daten aus der Influx zu querien
+% Anhand von Bucket, measurementName und Tags
 
-function edgeData = getEdgeData()
-% Fehlt noch!!
+function edgeData = getInfluxData(measurementName, queryBucketName, orgIDName, token, queryTags)
+    % Erzeuge die URL für die Query-API
+    influxURL = sprintf('http://localhost:8086/api/v2/query?orgID=%s', orgIDName);
+    
+    % Beginne mit dem Flux-Query-String: Filter für Bucket, Measurement und range
+    fluxQuery = sprintf('from(bucket: "%s") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "%s"', ...
+                          queryBucketName, measurementName);
+    
+    % Füge für jeden Tag aus queryTags einen Filter hinzu.
+    % queryTags ist ein Cell-Array aus Strings im Format "tagName=tagValue"
+    for i = 1:length(queryTags)
+        parts = strsplit(queryTags{i}, '=');
+        if numel(parts) ~= 2
+            error('Tag %s hat nicht das Format "Name=Value".', queryTags{i});
+        end
+        tagName = strtrim(parts{1});
+        tagValue = strtrim(parts{2});
+        % Füge den Filter hinzu
+        fluxQuery = [fluxQuery sprintf(' and r.%s == "%s"', tagName, tagValue)];
+    end
+    
+    % Schließe die Filter-Funktion ab und behalte nur die gewünschten Spalten
+    fluxQuery = [fluxQuery ') |> keep(columns: ["_value", "_field", "_time"])'];
+    
+    % Debugging: Zeige die gesamte Flux-Abfrage
+    fprintf('Generierte Flux-Abfrage:\n%s\n', fluxQuery);
+    
+    % Erstelle das Payload-Objekt
+    payload = struct('query', fluxQuery, 'type', 'flux');
+    
+    % Konfiguriere die Weboptions mit den benötigten Headern
+    options = weboptions(...
+        'MediaType', 'application/json', ...
+        'HeaderFields', {...
+            'Authorization', ['Token ' token]; ...
+            'Accept', 'application/csv' } ...
+        );
+    
+    % Sende die Anfrage und erhalte die Antwort (CSV-Format)
+    try
+        fprintf('Sende Query an InfluxDB...\n');
+        edgeData = webwrite(influxURL, payload, options);
+        fprintf('Antwort erhalten.\n');
+    catch ME
+        fprintf('Fehler bei der Anfrage: %s\n', ME.message);
+        edgeData = [];
+    end
 end
+
 
 %% Funktion zur Konvertierung von zusammengefasster synchronisierter Tabelle und Schreiben in InfluxDB in Batches
 

@@ -1,7 +1,7 @@
 %% Skript, um manuell Daten in die Influx einzuschreiben, da die Verbindung nicht funktionieren wird
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData06"; 
+measurementName = "realData08"; 
 writeBucketName = "daten-roh";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
@@ -41,6 +41,17 @@ function statusMessage = convertAndSendTable(measurementName, writeBucketName, o
     % Extrahiere die eigentliche Tabelle
     dataTable = matlabDataUnsynced.(tableName);
     
+    % Hole die Spaltennamen
+    columnNames = dataTable.Properties.VariableNames;
+    % Ersetze nur die Spalten, die exakt dem Muster "DT9836(00)_<Zahl>" entsprechen
+    for i = 1:length(columnNames)
+        if ~isempty(regexp(columnNames{i}, '^DT9836\(00\)_\d+$', 'once'))
+            columnNames{i} = regexprep(columnNames{i}, '^DT9836\(00\)_(\d+)$', 'voltage$1');
+        end
+    end
+    % Aktualisiere die Spaltennamen in der Tabelle
+    dataTable.Properties.VariableNames = columnNames;
+    
     % Konfiguration der Zeitstempel
     % Aktuelle Zeit in Nanosekunden abrufen (-1h für richtige Zeitzone)
     unixNowNs = posixtime(datetime('now')) * 1e9 - (3600 * 1e9);
@@ -49,9 +60,8 @@ function statusMessage = convertAndSendTable(measurementName, writeBucketName, o
     sampleRate = dataTable.Properties.SampleRate;
     timeStepNs = 1e9 / sampleRate; % Zeitinkrement pro Zeile in Nanosekunden
     
-    % Anzahl der Zeilen und Spalten bestimmen
+    % Anzahl der Zeilen bestimmen
     [numRows, ~] = size(dataTable);
-    columnNames = dataTable.Properties.VariableNames; % Spaltennamen als Field-Namen
 
     % Anzahl der Batches berechnen
     numBatches = ceil(numRows / batchSize);
@@ -105,7 +115,6 @@ function statusMessage = convertAndSendTable(measurementName, writeBucketName, o
         else
             disp(statusMessage)
         end
-
     end
 end
 
