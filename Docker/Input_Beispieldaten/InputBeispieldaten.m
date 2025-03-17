@@ -1,7 +1,7 @@
 %% Skript, um manuell Daten in die Influx einzuschreiben, da die Verbindung nicht funktionieren wird
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData_short14"; 
+measurementName = "realData_short18"; 
 writeBucketName = "daten-roh";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
@@ -10,8 +10,8 @@ writeEdgeDataTag = 'dataType=edgeData';
 writeMatlabDataTag = 'dataType=matlabData';
 writeMatlabMetadataTag = 'dataType=matlabMetadata';
 writeEdgeMetadataTag = 'dataType=edgeMetadata';
-maxBatchLimit = 30;     % [] bei keinem Limit, sonst die Zahl
-
+maxBatchLimit_Edge = 15;     % [] bei keinem Limit, sonst die Zahl, 20 mal mehr, weil Abtastrate 20 mal kleiner ist.
+maxBatchLimit_Matlab = maxBatchLimit_Edge*20;     % [] bei keinem Limit, sonst die Zahl
 %% laden von Testdaten
 edgeDataUnsynced = load('EdgeDaten.mat');
 disp('Edge-Daten geladen');
@@ -22,10 +22,10 @@ matlabDataUnsynced = rmfield(matlabDataUnsynced_withMeasurementSettings, 'measur
 
 
 % Senden von Edge-Daten an InfluxDB
-statusMessage1 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeEdgeDataTag, edgeDataUnsynced, maxBatchLimit);
+statusMessage1 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeEdgeDataTag, edgeDataUnsynced, maxBatchLimit_Edge);
 
 % Senden von Matlab-Daten an InfluxDB
-statusMessage2 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeMatlabDataTag, matlabDataUnsynced, maxBatchLimit);
+statusMessage2 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeMatlabDataTag, matlabDataUnsynced, maxBatchLimit_Matlab);
 
 % Senden von Matlab-Meta-Daten an InfluxDB
 statusMessage3 = sendExampleMatlabMetadata(measurementName, writeBucketName, orgIDName, token, writeMatlabMetadataTag);
@@ -281,14 +281,14 @@ lines = cell(92, 1);
 
 % Definiere die Werte für die bisherigen Tags
 einheiten = { ...
-    'NV', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm', 'mm', 'mm', 'deg', 'deg', ...             % Columns 1–12
-    'deg', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', ...       % Columns 13–25
-    '%', '%', '%', '%', '%', '%', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm', 'mm', ...           % Columns 26–39
-    'mm', 'deg', 'deg', 'deg', 'N', 'N', 'N', 'Nm', 'Nm', 'Nm', 'A', 'A', 'A', 'A', ...             % Columns 40–53
-    'A', 'A', 'A', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm/s', 'mm/s', 'mm/s', 'deg/s', ...      % Columns 54–65
-    'deg/s', 'deg/s', 'deg/s', 'W', 'W', 'W', 'W', 'W', 'W', 'mm', 'mm', 'mm', 'deg', 'deg', ...     % Columns 66–78
-    'deg', 'mm/s', 'mm/s', 'mm/s', 'deg/s', 'deg/s', 'deg/s', 'N', 'N', 'N', 'Nm', 'Nm', ...         % Columns 79–90
-    'Nm', 'NV' ...                                                                               % Columns 91–92
+    'NV', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm', 'mm', 'mm', 'deg', 'deg', ...            
+    'deg', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', ...      
+    '%', '%', '%', '%', '%', '%', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm', 'mm', ...          
+    'mm', 'deg', 'deg', 'deg', 'N', 'N', 'N', 'Nm', 'Nm', 'Nm', 'A', 'A', 'A', 'A', ...           
+    'A', 'A', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm/s', 'mm/s', 'mm/s', 'deg/s', ...     
+    'deg/s', 'deg/s', 'W', 'W', 'W', 'W', 'W', 'W', 'mm', 'mm', 'mm', 'deg', 'deg', ...    
+    'deg', 'mm/s', 'mm/s', 'mm/s', 'deg/s', 'deg/s', 'deg/s', 'N', 'N', 'N', 'Nm', 'Nm', ...        
+    'Nm', 'NV' ...                                                                               
     };
 
 
