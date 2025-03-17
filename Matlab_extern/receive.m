@@ -63,7 +63,7 @@ function receive
                 fprintf("Einheiten: %s\n", strjoin(data.einheit, ", "));
                 fprintf("Messrichtungen: %s\n", strjoin(data.messrichtung, ", "));
                 fprintf("Notizen: %s\n", strjoin(data.notizen, ", "));
-                fprintf("measuredQuantity: %s\n", strjoin(data.measuredQuantity, ", "));
+                fprintf("MeasuredQuantity: %s\n", strjoin(data.measuredQuantity, ", "));
                 fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
                 
                 % Prüfe, ob der empfangene Befehl dem aktuellen Status entspricht
@@ -128,7 +128,7 @@ function receive
                     fprintf("Einheiten: %s\n", strjoin(data.einheit, ", "));
                     fprintf("Messrichtungen: %s\n", strjoin(data.messrichtung, ", "));
                     fprintf("Notizen: %s\n", strjoin(data.notizen, ", "));
-                    fprintf("measuredQuantity: %s\n", strjoin(data.measuredQuantity, ", "));
+                    fprintf("MeasuredQuantity: %s\n", strjoin(data.measuredQuantity, ", "));
                     fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
                     fprintf("Aktuelle Abtastrate: %d Hz\n", handles.d.Rate);
                     
@@ -343,7 +343,7 @@ function receive
         fprintf("Einheiten: %s\n", strjoin(handles.lastFilteredData.einheit, ", "));
         fprintf("Messrichtungen: %s\n", strjoin(handles.lastFilteredData.messrichtung, ", "));
         fprintf("Notizen: %s\n", strjoin(handles.lastFilteredData.notizen, ", "));
-        fprintf("measuredQuantity: %s\n", strjoin(handles.lastFilteredData.measuredQuantity, ", "));
+        fprintf("MeasuredQuantity: %s\n", strjoin(handles.lastFilteredData.measuredQuantity, ", "));
         fprintf("Sensitivitäten: %s\n", mat2str(handles.lastFilteredData.sensiArray));
         fprintf("Aktuelle Abtastrate: %d Hz\n", handles.d.Rate);
     end

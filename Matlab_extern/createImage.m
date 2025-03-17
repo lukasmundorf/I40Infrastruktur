@@ -2,18 +2,18 @@
 % compiler.package.microserviceDockerImage(result,'ImageName','http-to-mqtt')
 
 
-% matlabFileName = "httpToMqtt.m";
-% archiveName = "http_to_mqtt";
-% imageName = "http-to-mqtt";
+matlabFileName = "httpToMqtt.m";
+archiveName = "http_to_mqtt";
+imageName = "http-to-mqtt";
 
 
 % matlabFileName = 'matlab_request.m';
 % archiveName = 'matlab_request';
 % imageName = 'matlab-request';
 
-matlabFileName = "myMicroservice.m";
-archiveName = "my_Microservice";
-imageName = "test-conversion";
+% matlabFileName = "myMicroservice.m";
+% archiveName = "my_Microservice";
+% imageName = "test-conversion";
 
 
 

@@ -1,7 +1,7 @@
 %function SynchronizeMatlabEdgeData(measurementName, queryBucketName, writeBucketName, orgIDName, token, sendBatchSize)
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData08"; 
+measurementName = "realData_short12"; 
 queryBucketName = "daten-roh";
 writeBucketName = "daten-aufbereitet";
 orgIDName = "4c0bacdd5f5d7868";
@@ -16,10 +16,10 @@ sampleRate_Edge = 500;
 
 %% Importierung und Strukturierug der Daten
 % Vorbereitung Metadaten
-%measurement_settings = getStructuredMatlabMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData); 
-
+measurement_settings = getStructuredMatlabMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData); 
+                
 % Vorbereitung Messdaten
-%StructuredMatlabData = getStructuredInfluxData(sampleRate_Matlab, measurementName, queryBucketName, orgIDName, token, queryTagMatlabData);
+StructuredMatlabData = getStructuredInfluxData(sampleRate_Matlab, measurementName, queryBucketName, orgIDName, token, queryTagMatlabData);
 
 StructuredEdgeData = getStructuredInfluxData(sampleRate_Edge, measurementName, queryBucketName, orgIDName, token, queryTagEdgeData);
 
@@ -50,11 +50,7 @@ function metadataStruct = getStructuredMatlabMetadata(measurementName, queryBuck
 %   >> measurement_settings = getStructuredMatlabMetadata();
 
     % 1) Tabelle laden (aus InfluxMatlabMetaDataQuery.mat)
-    matlabQueryMetadata = getMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData);
-
-    % 2) Aus dem geladenen Struct die Tabelle extrahieren.
-    feldNamen       = fieldnames(matlabQueryMetadata);
-    metadataTabelle = matlabQueryMetadata.(feldNamen{1});
+    metadataTabelle = getInfluxData(measurementName, queryBucketName, orgIDName, token, queryTagMetaData);
 
     % 3) Anzahl der Zeilen (Channels) bestimmen
     anzahlChannels = height(metadataTabelle);
@@ -64,7 +60,7 @@ function metadataStruct = getStructuredMatlabMetadata(measurementName, queryBuck
 
     % 5) MeasuredQuantity (1xN String)
     if ismember('measuredQuantity', metadataTabelle.Properties.VariableNames)
-        metadataStruct.MeasuredQuantity = string(metadataTabelle.measurementQuantity)';
+        metadataStruct.MeasuredQuantity = string(metadataTabelle.measuredQuantity)';
     else
         metadataStruct.MeasuredQuantity = strings(1, anzahlChannels);
     end
@@ -114,24 +110,25 @@ end
 
 function dataTT = getStructuredInfluxData(sampleRate, measurementName, queryBucketName, orgIDName, token, queryTags)
 % getStructuredInfluxData - Formt die abgefragten Messdaten (x_field, x_value, x_time)
-% zu einer Timetable um, in der die Spalten gemäß der Kanalnummer (0 bis 11)
-% sortiert sind. Die Zeitachse wird anhand der übergebenen Abtastrate erstellt.
-%
-% Die Tabelle wird über getMatlabData() geladen und enthält typischerweise die Spalten:
-%   - x_field: z.B. 'voltage0', 'voltage1', ... (Kanalkennung)
-%   - x_value: Messwerte
-%   - x_time : InfluxDB-Timestamps (werden hier nicht genutzt)
+% zu einer Timetable um, in der jede Spalte einem Kanal (x_field) entspricht.
+% Jede Zeile beschreibt genau einen Datenpunkt, wobei x_field der Schlüssel
+% und x_value der Wert ist. Die Zeitachse wird anhand der übergebenen Abtastrate erstellt.
 %
 % Voraussetzungen:
+%   - Die Query-Tabelle wird über getInfluxData() geladen und enthält u.a. die Spalten:
+%       x_field: z.B. 'voltage0', 'voltage1', ... (Kanalbezeichnung)
+%       x_value: Messwerte
+%       x_time : InfluxDB-Timestamps (werden hier nicht genutzt)
 %   - Die Query-Tabelle ist blockweise sortiert, d.h. die Daten eines Kanals
-%     stehen hintereinander, allerdings in der Reihenfolge, in der sie aus Influx kommen.
-%   - queryTags enthält die Abtastrate (z. B. 1000 Hz).
+%     stehen hintereinander.
+%   - queryTags enthält u.a. die Abtastrate (z. B. 1000 Hz).
 %
 % Rückgabe:
-%   dataTT: timetable mit einer Spalte pro Kanal in sortierter Reihenfolge.
+%   dataTT: timetable mit einer Spalte pro Kanal, in der Reihenfolge,
+%           in der sie in der Abfrage auftauchen.
 
-    % 1) Große Tabelle laden (z. B. mehrere Mio. Zeilen)
-    dataTable = getInfluxData(measurementName, queryBucketName, orgIDName, token, queryTags);  % enthält u.a. x_field, x_value, x_time
+    % 1) Influx querien
+    dataTable = getInfluxData(measurementName, queryBucketName, orgIDName, token, queryTags);
 
     % 2) Ermitteln der eindeutigen Kanäle in der Reihenfolge, wie sie in der Tabelle vorkommen
     uniqueChannelsStable = unique(dataTable.x_field, 'stable');
@@ -141,76 +138,32 @@ function dataTT = getStructuredInfluxData(sampleRate, measurementName, queryBuck
     nRows = height(dataTable);
     nSamples = nRows / nUnique;
     
-    % 3) Die Blöcke (Werte pro Kanal) in einem Zellenarray ablegen, sortiert nach Kanalnummer
-    % Wir gehen davon aus, dass die Kanalkennung das Format "voltage<number>" hat.
-    % Wir legen die Daten in einem Array ab, in dem an Position channelNumber+1 die Werte
-    % dieses Kanals stehen.
-    maxChannel = -Inf;
-    % Zunächst die Kanalnummern ermitteln, um die maximale Nummer zu bestimmen:
-    channelNums = zeros(nUnique,1);
-    for i = 1:nUnique
-        chName = uniqueChannelsStable{i};
-        numStr = regexp(chName, '\d+', 'match');
-        if ~isempty(numStr)
-            channelNums(i) = str2double(numStr{1});
-        else
-            channelNums(i) = NaN;
-        end
-        if channelNums(i) > maxChannel
-            maxChannel = channelNums(i);
-        end
-    end
-    % Legen Sie ein Zellenarray an, das mindestens (maxChannel+1) Plätze hat.
-    sortedBlocks = cell(1, maxChannel+1);
-    sortedNames  = cell(1, maxChannel+1);
-    
-    % Jetzt für jeden Kanalblock aus der Query:
+    % 3) Die Kanaldaten in einem Zellenarray ablegen – ohne Sortierung nach Kanalnummer,
+    %    einfach in der Reihenfolge, wie sie in uniqueChannelsStable erscheinen.
+    channelBlocks = cell(1, nUnique);
     for i = 1:nUnique
         blockStart = (i-1)*nSamples + 1;
         blockEnd   = i*nSamples;
-        blockData = dataTable.x_value(blockStart:blockEnd);
-        
-        chName = uniqueChannelsStable{i};
-        numStr = regexp(chName, '\d+', 'match');
-        if ~isempty(numStr)
-            chNum = str2double(numStr{1});
-        else
-            chNum = NaN;
-        end
-        
-        % Speichern in der Position chNum+1
-        sortedBlocks{chNum+1} = blockData;
-        sortedNames{chNum+1} = chName;  % Alternativ: sprintf('voltage%d', chNum)
+        channelBlocks{i} = dataTable.x_value(blockStart:blockEnd);
     end
     
     % 4) Neue Zeitachse anhand der SampleRate erstellen
     Fs = sampleRate;  % z. B. 1000 Hz
-    dt = 1 / Fs;             % Abtastintervall
+    dt = 1 / Fs;     % Abtastintervall
     timeArray = seconds((0:nSamples-1)' * dt);
     
-    % 5) Leere Timetable initialisieren
-    dataTT = timetable(timeArray, 'VariableNames', {});
-    
-    % 6) Die sortierten Kanaldaten in die Timetable einfügen – von Kanal 0 bis maxChannel
-    for ch = 0:maxChannel
-        idx = ch + 1;
-        if ~isempty(sortedBlocks{idx})
-            % Verwenden Sie als Spaltennamen den originalen Namen (oder generieren Sie einen neuen)
-            colName = sortedNames{idx};
-            dataTT.(colName) = sortedBlocks{idx};
-        end
+    % 5) Timetable initialisieren und die Kanaldaten einfügen – in der Reihenfolge,
+    %    in der sie in uniqueChannelsStable stehen.
+    dataTT = timetable(timeArray);
+    for i = 1:nUnique
+        colName = uniqueChannelsStable{i};
+        dataTT.(colName) = channelBlocks{i};
     end
     
-    % 7) Timetable-Eigenschaften setzen (optional)
+    % 6) Timetable-Eigenschaften setzen (optional)
     dataTT.Properties.SampleRate = Fs;
 end
 
-%% Funktion um Metadaten aus der Influx zu querien
-
-function metaData = getMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMetaData)
-% Lädt die Metadaten aus der Datei 'InfluxMatlabMetaDataQuery.mat'
-    metaData = load('InfluxMatlabMetaDataQuery.mat');
-end
 
 %% Funktion um Testdaten, die nichts mit der Influx zu tun haben, zu holen (zur Validierung dass der Code das richtige macht) , kann anstatt von getMatlabData() ausgewählt werden
 
@@ -222,54 +175,67 @@ end
 %% Funktion um Daten aus der Influx zu querien
 % Anhand von Bucket, measurementName und Tags
 
-function edgeData = getInfluxData(measurementName, queryBucketName, orgIDName, token, queryTags)
-    % Erzeuge die URL für die Query-API
-    influxURL = sprintf('http://localhost:8086/api/v2/query?orgID=%s', orgIDName);
-    
-    % Beginne mit dem Flux-Query-String: Filter für Bucket, Measurement und range
-    fluxQuery = sprintf('from(bucket: "%s") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "%s"', ...
-                          queryBucketName, measurementName);
-    
-    % Füge für jeden Tag aus queryTags einen Filter hinzu.
-    % queryTags ist ein Cell-Array aus Strings im Format "tagName=tagValue"
-    for i = 1:length(queryTags)
-        parts = strsplit(queryTags{i}, '=');
-        if numel(parts) ~= 2
-            error('Tag %s hat nicht das Format "Name=Value".', queryTags{i});
-        end
-        tagName = strtrim(parts{1});
-        tagValue = strtrim(parts{2});
-        % Füge den Filter hinzu
-        fluxQuery = [fluxQuery sprintf(' and r.%s == "%s"', tagName, tagValue)];
-    end
-    
-    % Schließe die Filter-Funktion ab und behalte nur die gewünschten Spalten
-    fluxQuery = [fluxQuery ') |> keep(columns: ["_value", "_field", "_time"])'];
-    
-    % Debugging: Zeige die gesamte Flux-Abfrage
-    fprintf('Generierte Flux-Abfrage:\n%s\n', fluxQuery);
-    
-    % Erstelle das Payload-Objekt
-    payload = struct('query', fluxQuery, 'type', 'flux');
-    
-    % Konfiguriere die Weboptions mit den benötigten Headern
-    options = weboptions(...
-        'MediaType', 'application/json', ...
-        'HeaderFields', {...
-            'Authorization', ['Token ' token]; ...
-            'Accept', 'application/csv' } ...
-        );
-    
-    % Sende die Anfrage und erhalte die Antwort (CSV-Format)
-    try
-        fprintf('Sende Query an InfluxDB...\n');
-        edgeData = webwrite(influxURL, payload, options);
-        fprintf('Antwort erhalten.\n');
-    catch ME
-        fprintf('Fehler bei der Anfrage: %s\n', ME.message);
-        edgeData = [];
-    end
+function influxData = getInfluxData(measurementName, queryBucketName, orgIDName, token, queryTags)
+%kürzere Rückgabetabelle bei Data Query, um Rechenzeit zu sparen
+if any(strcmp(queryTags, 'dataType=matlabMetadata')) || any(strcmp(queryTags, 'dataType=edgeMetadata'))
+    onlyValueFieldTimeQuery = false;
+else
+    onlyValueFieldTimeQuery = true;
 end
+
+% Erzeuge die URL für die Query-API
+influxURL = sprintf('http://localhost:8086/api/v2/query?orgID=%s', orgIDName);
+
+% Beginne mit dem Flux-Query-String: Filter für Bucket, Measurement und range
+fluxQuery = sprintf('from(bucket: "%s") |> range(start: -inf) |> filter(fn: (r) => r._measurement == "%s"', ...
+    queryBucketName, measurementName);
+
+% Füge für jeden Tag aus queryTags einen Filter hinzu.
+% queryTags ist ein Cell-Array aus Strings im Format "tagName=tagValue"
+for i = 1:length(queryTags)
+    parts = strsplit(queryTags{i}, '=');
+    if numel(parts) ~= 2
+        error('Tag %s hat nicht das Format "Name=Value".', queryTags{i});
+    end
+    tagName = strtrim(parts{1});
+    tagValue = strtrim(parts{2});
+    % Füge den Filter hinzu
+    fluxQuery = [fluxQuery sprintf(' and r.%s == "%s"', tagName, tagValue)];
+end
+
+% Schließe die Filter-Funktion ab
+fluxQuery = [fluxQuery ')'];
+
+% Falls onlyValueFieldTimeQuery true ist, wird der keep-Filter hinzugefügt
+if onlyValueFieldTimeQuery
+    fluxQuery = [fluxQuery ' |> keep(columns: ["_value", "_field", "_time"])'];
+end
+
+% Debugging: Zeige die gesamte Flux-Abfrage
+fprintf('Generierte Flux-Abfrage:\n%s\n', fluxQuery);
+
+% Erstelle das Payload-Objekt
+payload = struct('query', fluxQuery, 'type', 'flux');
+
+% Konfiguriere die Weboptions mit den benötigten Headern
+options = weboptions(...
+    'MediaType', 'application/json', ...
+    'HeaderFields', {...
+    'Authorization', ['Token ' token]; ...
+    'Accept', 'application/csv' } ...
+    );
+
+% Sende die Anfrage und erhalte die Antwort (CSV-Format)
+try
+    fprintf('Sende Query an InfluxDB...\n');
+    influxData = webwrite(influxURL, payload, options);
+    fprintf('Antwort erhalten.\n');
+catch ME
+    fprintf('Fehler bei der Anfrage: %s\n', ME.message);
+    influxData = [];
+end
+end
+
 
 
 %% Funktion zur Konvertierung von zusammengefasster synchronisierter Tabelle und Schreiben in InfluxDB in Batches
