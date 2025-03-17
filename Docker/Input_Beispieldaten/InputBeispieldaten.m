@@ -1,7 +1,7 @@
 %% Skript, um manuell Daten in die Influx einzuschreiben, da die Verbindung nicht funktionieren wird
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData_short12"; 
+measurementName = "realData_short14"; 
 writeBucketName = "daten-roh";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
@@ -9,6 +9,7 @@ token = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9W
 writeEdgeDataTag = 'dataType=edgeData';
 writeMatlabDataTag = 'dataType=matlabData';
 writeMatlabMetadataTag = 'dataType=matlabMetadata';
+writeEdgeMetadataTag = 'dataType=edgeMetadata';
 maxBatchLimit = 30;     % [] bei keinem Limit, sonst die Zahl
 
 %% laden von Testdaten
@@ -27,8 +28,10 @@ statusMessage1 = convertAndSendTable(measurementName, writeBucketName, orgIDName
 statusMessage2 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeMatlabDataTag, matlabDataUnsynced, maxBatchLimit);
 
 % Senden von Matlab-Meta-Daten an InfluxDB
-statusMessage3 = sendExampleMetadata(measurementName, writeBucketName, orgIDName, token, writeMatlabMetadataTag);
+statusMessage3 = sendExampleMatlabMetadata(measurementName, writeBucketName, orgIDName, token, writeMatlabMetadataTag);
 
+% Senden von Matlab-Meta-Daten an InfluxDB
+statusMessage4 = sendExampleEdgeMetadata(measurementName, writeBucketName, orgIDName, token, writeEdgeMetadataTag);
 
 
 %% Funktion zur Konvertierung von zusammengefasster synchronisierter Tabelle und Schreiben in InfluxDB in Batches
@@ -172,7 +175,9 @@ function statusMessage = sendLineProtocolToInflux(token, writeBucketName, orgIDN
     end
 end
 
-function statusMessage2 = sendExampleMetadata(measurementName, writeBucketName, orgIDName, token, writeMatlabMetadataTag)
+%% Schreibe Matlab Metadaten in die InfluxDB
+
+function statusMessage = sendExampleMatlabMetadata(measurementName, writeBucketName, orgIDName, token, writeMatlabMetadataTag)
     % Stelle sicher, dass measurementName ein Character Vector ist und ersetze Leerzeichen
     measurementName = char(measurementName);
     measurementName = strrep(measurementName, ' ', '_');
@@ -262,5 +267,90 @@ function statusMessage2 = sendExampleMetadata(measurementName, writeBucketName, 
     % Verbinde alle Zeilen mit einem Zeilenumbruch
     writeBatch = strjoin(lines, '\n');
     disp(writeBatch);
-    statusMessage2 = sendLineProtocolToInflux(token, writeBucketName, orgIDName, writeBatch);
+    statusMessage = sendLineProtocolToInflux(token, writeBucketName, orgIDName, writeBatch);
+end
+
+%% Schreibe Edge Metadaten in die InfluxDB
+
+function statusMessage = sendExampleEdgeMetadata(measurementName, writeBucketName, orgIDName, token, writeEdgeMetadataTag)
+
+measurementName = char(measurementName);
+
+% Erstelle ein Cell-Array für 92 Zeilen
+lines = cell(92, 1);
+
+% Definiere die Werte für die bisherigen Tags
+einheiten = { ...
+    'NV', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm', 'mm', 'mm', 'deg', 'deg', ...             % Columns 1–12
+    'deg', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', ...       % Columns 13–25
+    '%', '%', '%', '%', '%', '%', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm', 'mm', ...           % Columns 26–39
+    'mm', 'deg', 'deg', 'deg', 'N', 'N', 'N', 'Nm', 'Nm', 'Nm', 'A', 'A', 'A', 'A', ...             % Columns 40–53
+    'A', 'A', 'A', 'mm', 'mm', 'mm', 'deg', 'deg', 'deg', 'mm/s', 'mm/s', 'mm/s', 'deg/s', ...      % Columns 54–65
+    'deg/s', 'deg/s', 'deg/s', 'W', 'W', 'W', 'W', 'W', 'W', 'mm', 'mm', 'mm', 'deg', 'deg', ...     % Columns 66–78
+    'deg', 'mm/s', 'mm/s', 'mm/s', 'deg/s', 'deg/s', 'deg/s', 'N', 'N', 'N', 'Nm', 'Nm', ...         % Columns 79–90
+    'Nm', 'NV' ...                                                                               % Columns 91–92
+    };
+
+
+% Definiere die Field-Werte für ChannelName von ch0 bis ch91
+channelOrder = { ...
+    'ch0', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'ch8', 'ch9', ...
+    'ch10', 'ch11', 'ch12', 'ch13', 'ch14', 'ch15', 'ch16', 'ch17', 'ch18', 'ch19', ...
+    'ch20', 'ch21', 'ch22', 'ch23', 'ch24', 'ch25', 'ch26', 'ch27', 'ch28', 'ch29', ...
+    'ch30', 'ch31', 'ch32', 'ch33', 'ch34', 'ch35', 'ch36', 'ch37', 'ch38', 'ch39', ...
+    'ch40', 'ch41', 'ch42', 'ch43', 'ch44', 'ch45', 'ch46', 'ch47', 'ch48', 'ch49', ...
+    'ch50', 'ch51', 'ch52', 'ch53', 'ch54', 'ch55', 'ch56', 'ch57', 'ch58', 'ch59', ...
+    'ch60', 'ch61', 'ch62', 'ch63', 'ch64', 'ch65', 'ch66', 'ch67', 'ch68', 'ch69', ...
+    'ch70', 'ch71', 'ch72', 'ch73', 'ch74', 'ch75', 'ch76', 'ch77', 'ch78', 'ch79', ...
+    'ch80', 'ch81', 'ch82', 'ch83', 'ch84', 'ch85', 'ch86', 'ch87', 'ch88', 'ch89', ...
+    'ch90', 'ch91' ...
+    };
+
+fieldNames = { ...
+    'sync_signal', 'xActualAxisPosition', 'yActualAxisPosition', 'zActualAxisPosition', 'cActualAxisPosition', ...
+    'bActualAxisPosition', 'spActualAxisPosition', 'xCommandedAxisPosition', 'yCommandedAxisPosition', 'zCommandedAxisPosition', ...
+    'cCommandedAxisPosition', 'bCommandedAxisPosition', 'spCommandedAxisPosition', 'xEncoder1Position', 'yEncoder1Position', ...
+    'zEncoder1Position', 'cEncoder1Position', 'bEncoder1Position', 'spEncoder1Position', 'xEncoder2Position', ...
+    'yEncoder2Position', 'zEncoder2Position', 'cEncoder2Position', 'bEncoder2Position', 'spEncoder2Position', ...
+    'xLoad', 'yLoad', 'zLoad', 'cLoad', 'bLoad', 'spLoad', 'xControlDiff', 'yControlDiff', 'zControlDiff', ...
+    'cControlDiff', 'bControlDiff', 'spControlDiff', 'xControlDiff2', 'yControlDiff2', 'zControlDiff2', ...
+    'cControlDiff2', 'bControlDiff2', 'spControlDiff2', 'xTorque', 'yTorque', 'zTorque', 'cTorque', 'bTorque', ...
+    'spTorque', 'xCurrent', 'yCurrent', 'zCurrent', 'cCurrent', 'bCurrent', 'spCurrent', 'xControlPos', ...
+    'yControlPos', 'zControlPos', 'cControlPos', 'bControlPos', 'spControlPos', 'xVelocityFeedForward', ...
+    'yVelocityFeedForward', 'zVelocityFeedForward', 'cVelocityFeedForward', 'bVelocityFeedForward', 'spVelocityFeedForward', ...
+    'xPower', 'yPower', 'zPower', 'cPower', 'bPower', 'spPower', 'xCountourDeviation', 'yCountourDeviation', ...
+    'zCountourDeviation', 'cCountourDeviation', 'bCountourDeviation', 'spCountourDeviation', 'xCommandedSpeed', ...
+    'yCommandedSpeed', 'zCommandedSpeed', 'cCommandedSpeed', 'bCommandedSpeed', 'spCommandedSpeed', ...
+    'xTorqueFeedForward', 'yTorqueFeedForward', 'zTorqueFeedForward', 'cTorqueFeedForward', 'bTorqueFeedForward', ...
+    'spTorqueFeedForward', 'Cycle' ...
+    };
+
+% Konstanten
+sampleRate = 500;
+
+%Berechne den Basis-Zeitstempel in ns (aktuelle Unix-Zeit in ns minus 3600*10^9)
+timestamp_base = posixtime(datetime('now')) * 1e9 - 3600*1e9;
+% Setze das Inkrement auf 0,1ms = 1e5 ns
+timestamp_increment = 1e5;
+
+% Fülle jede der 92 Zeilen
+for i = 1:92
+    % Zeitstempel: Jede Zeile timestamp_increment ns später als die vorherige
+    timestamp = int64(timestamp_base + (i-1) * timestamp_increment);
+
+    % Zusammenbauen der Zeile im Influx Line Protocol Format:
+    % measurement,<tags> <fields> <timestamp>
+    lines{i} = [measurementName, ...
+        ',', writeEdgeMetadataTag, ...
+        ',einheit=', einheiten{i}, ...
+        ',sampleRate=', num2str(sampleRate), ...
+        ',rightChannelOrder=', channelOrder{i}, ...
+        ' channelName="', fieldNames{i}, '" ', ...
+        num2str(timestamp)];
+end
+
+% Verbinde alle Zeilen mit einem Zeilenumbruch
+writeBatch = strjoin(lines, '\n');
+disp(writeBatch);
+statusMessage = sendLineProtocolToInflux(token, writeBucketName, orgIDName, writeBatch);
 end
