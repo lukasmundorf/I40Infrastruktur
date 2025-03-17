@@ -1,7 +1,7 @@
 %% Skript, um manuell Daten in die Influx einzuschreiben, da die Verbindung nicht funktionieren wird
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData08"; 
+measurementName = "realData_short12"; 
 writeBucketName = "daten-roh";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
@@ -9,6 +9,8 @@ token = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9W
 writeEdgeDataTag = 'dataType=edgeData';
 writeMatlabDataTag = 'dataType=matlabData';
 writeMatlabMetadataTag = 'dataType=matlabMetadata';
+maxBatchLimit = 30;     % [] bei keinem Limit, sonst die Zahl
+
 %% laden von Testdaten
 edgeDataUnsynced = load('EdgeDaten.mat');
 disp('Edge-Daten geladen');
@@ -19,22 +21,28 @@ matlabDataUnsynced = rmfield(matlabDataUnsynced_withMeasurementSettings, 'measur
 
 
 % Senden von Edge-Daten an InfluxDB
-statusMessage1 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeEdgeDataTag, edgeDataUnsynced);
+statusMessage1 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeEdgeDataTag, edgeDataUnsynced, maxBatchLimit);
 
-% Senden von Edge-Daten an InfluxDB
-statusMessage2 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeMatlabDataTag, matlabDataUnsynced);
+% Senden von Matlab-Daten an InfluxDB
+statusMessage2 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeMatlabDataTag, matlabDataUnsynced, maxBatchLimit);
 
-statusMessage3 = sendExampleMetadata(measurementName, writeBucketName, orgIDName, token);
+% Senden von Matlab-Meta-Daten an InfluxDB
+statusMessage3 = sendExampleMetadata(measurementName, writeBucketName, orgIDName, token, writeMatlabMetadataTag);
 
 
 
 %% Funktion zur Konvertierung von zusammengefasster synchronisierter Tabelle und Schreiben in InfluxDB in Batches
 
-function statusMessage = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, matlabDataUnsynced)
+function statusMessage = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, matlabDataUnsynced, maxBatchLimit)
+    % Falls maxBatchLimit nicht angegeben oder leer ist, wird keine Begrenzung gesetzt.
+    if nargin < 8 || isempty(maxBatchLimit)
+        maxBatchLimit = inf;
+    end
+
     % Finde den Tabellen-Namen innerhalb des Objekts
     tableNames = fieldnames(matlabDataUnsynced);
     if isempty(tableNames)
-        error('Das Objekt DataTableUnsynced enthält keine Tabelle.');
+        error('Das Objekt matlabDataUnsynced enthält keine Tabelle.');
     end
     tableName = tableNames{1}; % Erste Tabelle auswählen
 
@@ -65,6 +73,8 @@ function statusMessage = convertAndSendTable(measurementName, writeBucketName, o
 
     % Anzahl der Batches berechnen
     numBatches = ceil(numRows / batchSize);
+    % Begrenze die Anzahl der Batch-Writes, falls maxBatchLimit gesetzt wurde
+    numBatches = min(numBatches, maxBatchLimit);
 
     % Berechne alle Zeitstempel VEKTORISIERT
     timestampsNs = int64(unixNowNs + (0:numRows-1)' * timeStepNs);
@@ -162,7 +172,7 @@ function statusMessage = sendLineProtocolToInflux(token, writeBucketName, orgIDN
     end
 end
 
-function statusMessage2 = sendExampleMetadata(measurementName, writeBucketName, orgIDName, token)
+function statusMessage2 = sendExampleMetadata(measurementName, writeBucketName, orgIDName, token, writeMatlabMetadataTag)
     % Stelle sicher, dass measurementName ein Character Vector ist und ersetze Leerzeichen
     measurementName = char(measurementName);
     measurementName = strrep(measurementName, ' ', '_');
@@ -236,7 +246,7 @@ function statusMessage2 = sendExampleMetadata(measurementName, writeBucketName, 
         % Zusammenbauen der Zeile im Influx Line Protocol Format:
         % measurement,<tags> <fields> <timestamp>
         lines{i} = [measurementName, ...
-            ',dataType=metadata', ...
+            ',', writeMatlabMetadataTag, ...
             ',einheit=', einheitValues{i}, ...
             ',measuredQuantity=', measuredQuantityValues{i}, ...
             ',messrichtung=', messrichtungValues{i}, ...
