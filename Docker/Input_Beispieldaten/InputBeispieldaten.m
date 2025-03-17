@@ -1,7 +1,7 @@
 %% Skript, um manuell Daten in die Influx einzuschreiben, da die Verbindung nicht funktionieren wird
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData_short18"; 
+measurementName = "realData_short19"; 
 writeBucketName = "daten-roh";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
@@ -10,7 +10,7 @@ writeEdgeDataTag = 'dataType=edgeData';
 writeMatlabDataTag = 'dataType=matlabData';
 writeMatlabMetadataTag = 'dataType=matlabMetadata';
 writeEdgeMetadataTag = 'dataType=edgeMetadata';
-maxBatchLimit_Edge = 15;     % [] bei keinem Limit, sonst die Zahl, 20 mal mehr, weil Abtastrate 20 mal kleiner ist.
+maxBatchLimit_Edge = 5;     % [] bei keinem Limit, sonst die Zahl, 20 mal mehr, weil Abtastrate 20 mal kleiner ist.
 maxBatchLimit_Matlab = maxBatchLimit_Edge*20;     % [] bei keinem Limit, sonst die Zahl
 %% laden von Testdaten
 edgeDataUnsynced = load('EdgeDaten.mat');

@@ -4,7 +4,7 @@
 clear;
 
 %% Testparameter (zum Testen – in der finalen Microservice-Version entfernen)
-measurementName         = "realData_short18"; 
+measurementName         = "realData_short19"; 
 queryBucketName         = "daten-roh";
 writeBucketName         = "daten-aufbereitet";
 orgIDName               = "4c0bacdd5f5d7868";
@@ -73,12 +73,10 @@ messdaten_syncr = SyncMatlabEdgeData(tmp, TT, measurement_settings);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Laden synchronisierter Testdaten (temporär, bis das endgültige Synchronisationsskript integriert wird)
-% finishedTableSynced = load('MatlabDaten_synchronized.mat');
-% disp('Daten geladen.');
+%% Senden der synchronisierten Daten in Tabelle an InfluxDB in Batches
 
-%% Senden der synchronisierten Tabelle an InfluxDB in Batches
-% statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeTagSyncedData, finishedTableSynced);
+statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeTagSyncedData, messdaten_syncr);
+disp(statusMessage);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Funktionen
@@ -109,6 +107,7 @@ function metadataStruct = getStructuredMatlabMetadata(measurementName, queryBuck
     metadataStruct = struct();
     metadataStruct.MeasuredQuantity = string(metadataTabelle.measuredQuantity)';
     metadataStruct.Direction        = string(metadataTabelle.messrichtung)';
+    metadataStruct.Direction (metadataStruct.Direction  == "none") = "";
     
     if iscell(metadataTabelle.sensitivity)
         metadataStruct.SensitivityValue = cell2mat(metadataTabelle.sensitivity)';
@@ -292,17 +291,8 @@ end
 %
 % Rückgabe:
 %   statusMessage - Statusmeldung zum Schreibvorgang
-function statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, finishedTableSynced)
-    % Bestimme den Namen der enthaltenen Tabelle
-    tableNames = fieldnames(finishedTableSynced);
-    if isempty(tableNames)
-        error('Das Objekt finishedTableSynced enthält keine Tabelle.');
-    end
-    tableName = tableNames{1};  % Verwende die erste Tabelle
-
-    % Extrahiere die Tabelle
-    dataTable = finishedTableSynced.(tableName);
-    
+function statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, dataTable)
+ 
     % Konfiguriere Zeitstempel:
     unixNowNs = posixtime(datetime('now')) * 1e9 - (3600 * 1e9);  % Aktuelle Zeit in Nanosekunden (-1h Korrektur)
     sampleRate = dataTable.Properties.SampleRate;
@@ -413,7 +403,7 @@ end
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Funktionen von Florian Oexle
+%% Funktionen von Florian Oexle
 
 
 function messdaten_syncr = SyncMatlabEdgeData(tmp, TT, measurement_settings)
@@ -533,7 +523,6 @@ clearvars -except messdaten_syncr measurement_settings measurementName writeBuck
 
 end
 
-
 function startIndex = getStartIndexOfTrigger(table,tolerance,Tconsecutive)
 %GETSTARTTIMETRIGGER Bestimmt den Index der eingegebenen Tabelle 'table',
 %ab der im Edge-Signal, der Trigger von 0 auf 1 springt. Die Tabelle
@@ -581,7 +570,6 @@ end
 startIndex = j_2(1,1)+j;
 end
 
-
-
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
