@@ -1,7 +1,7 @@
 %% Skript, um manuell Daten in die Influx einzuschreiben, da die Verbindung nicht funktionieren wird
 
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData_short19"; 
+measurementName = "realData_short21"; 
 writeBucketName = "daten-roh";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;

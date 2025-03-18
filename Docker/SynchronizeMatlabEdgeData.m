@@ -4,7 +4,7 @@
 clear;
 
 %% Testparameter (zum Testen – in der finalen Microservice-Version entfernen)
-measurementName         = "realData_short19"; 
+measurementName         = "realData_short21"; 
 queryBucketName         = "daten-roh";
 writeBucketName         = "daten-aufbereitet";
 orgIDName               = "4c0bacdd5f5d7868";
@@ -15,7 +15,8 @@ queryTagMatlabMetaData  = "dataType=matlabMetadata";
 queryTagEdgeData        = "dataType=edgeData";        
 queryTagEdgeMetaData    = "dataType=edgeMetadata";  
 writeTagSyncedData      = "dataType=synchronizedEdgeMatlabData";
-writeTagSyncedMetaData  = "dataType=synchronizedEdgeMatlabMetaData";
+writeTagSyncedMatlabMetaData  = "dataType=synchronizedMatlabMetaData";
+writeTagSyncedEdgeMetaData  = "dataType=synchronizedEdgeMetaData";
 
 %% Daten importieren und vorbereiten
 
@@ -58,7 +59,7 @@ tmp = StructuredMatlabData;
 % benenne StructuredEdgeData => TT
 TT = StructuredEdgeData;
 
-clearvars -except tmp TT measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab
+clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData tmp TT measurement_settings numActiveChannels measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab
 disp('moin')
 
 %%
@@ -77,7 +78,10 @@ messdaten_syncr = SyncMatlabEdgeData(tmp, TT, measurement_settings);
 
 statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeTagSyncedData, messdaten_syncr);
 disp(statusMessage);
-
+disp('Sende Metadaten an InfluxDB...')
+statusMessage2 = convertAndSendSyncMetadata(measurementName, measurement_settings, writeBucketName, orgIDName, token, writeTagSyncedMatlabMetaData, writeTagSyncedEdgeMetaData, messdaten_syncr, numActiveChannels);
+disp(statusMessage2);
+disp('Synchronisierung Erfolgreich')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Funktionen
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -400,11 +404,179 @@ function tt = sortTableColumns(tt, desiredOrder)
     tt = tt(:, desiredOrder);
 end
 
+
+%% Funktion, um Metadaten (matlab und edge) zur Tabelle in Influx zu schreiben
+function statusMessage = convertAndSendSyncMetadata(measurementName, measurement_settings, writeBucketName, orgIDName, token, ...
+    writeTagSyncedMatlabMetaData, writeTagSyncedEdgeMetaData, dataTable, numActiveChannels)
+% convertAndSendSyncMetadata - Konvertiert sowohl Matlab- als auch Edge-Metadaten
+%                               in das Line Protocol und sendet sie an InfluxDB.
+%
+% Eingabeparameter:
+%   measurementName              - Name des Measurements (String/char)
+%   measurement_settings         - Struct mit den Metadaten, insbesondere:
+%                                  .MeasuredQuantity (String-Array)
+%                                  .Direction (String-Array)
+%   writeBucketName              - Bucket, in den geschrieben wird
+%   orgIDName                    - Organisation/ID
+%   token                        - InfluxDB-Token
+%   sendBatchSize                - Batch-Größe (wird hier noch nicht verwendet)
+%   writeTagSyncedMatlabMetaData - Tag für synchronisierte Matlab-Metadaten (z.B. "dataType=matlabMetadata")
+%   writeTagSyncedEdgeMetaData   - Tag für synchronisierte Edge-Metadaten (z.B. "dataType=edgeMetadata")
+%   dataTableObj                 - Objekt, aus dem die Tabelle extrahiert wird 
+%                                  (hier: dataTableObj.messdaten_syncr)
+%   numActiveChannels            - Gesamtzahl aktiver Kanäle; es werden die ersten numActiveChannels genutzt,
+%                                  wobei das erste Element in MeasuredQuantity und Direction übersprungen wird.
+%
+% Rückgabe:
+%   statusMessage                - Rückmeldung, ob der Schreibvorgang erfolgreich war.
+    
+    % 00)SampleRate aus dataTable entnehmen
+    if isprop(dataTable.Properties, 'SampleRate')
+        sampleRate = dataTable.Properties.SampleRate;
+    else
+        sampleRate = NaN;
+    end
+
+    % 1) measurementName bereinigen
+    measurementName = char(measurementName);
+    measurementName = strrep(measurementName, ' ', '_');
+    if isempty(measurementName)
+        measurementName = 'none';
+    end
+
+    % 2) Matlab-Metadaten-Zeilen erstellen
+    chosenTagMatlab = char(writeTagSyncedMatlabMetaData);
+    numMatlabLines = numActiveChannels - 1;  % Es werden die ersten numActiveChannels-1 Zeilen erzeugt
+    matlabLines = cell(numMatlabLines, 1);
+    
+    % Basis-Zeitstempel (aktuelle Unix-Zeit minus 1h) und Zeitinkrement
+    timestamp_base = posixtime(datetime('now')) * 1e9 - 3600*1e9;
+    timestamp_increment = 1e5;
+    
+    for i = 1:numMatlabLines
+        timestamp = int64(timestamp_base + (i-1) * timestamp_increment);
+        
+        % notizen (aus VariableDescriptions, Index i)
+        if i <= numel(dataTable.Properties.VariableDescriptions)
+            notizenValue = dataTable.Properties.VariableDescriptions{i};
+        else
+            notizenValue = 'none';
+        end
+        if isempty(notizenValue), notizenValue = 'none'; end
+        
+        % einheit (aus VariableUnits, Index i)
+        if i <= numel(dataTable.Properties.VariableUnits)
+            einheitValue = dataTable.Properties.VariableUnits{i};
+        else
+            einheitValue = 'none';
+        end
+        if isempty(einheitValue), einheitValue = 'none'; end
+        
+        % measuredQuantity (aus measurement_settings.MeasuredQuantity, Index i+1)
+        if (i+1) <= numel(measurement_settings.MeasuredQuantity)
+            measuredQuantityValue = measurement_settings.MeasuredQuantity{i+1};
+        else
+            measuredQuantityValue = 'none';
+        end
+        if isempty(measuredQuantityValue), measuredQuantityValue = 'none'; end
+        
+        % messrichtung (aus measurement_settings.Direction, Index i+1)
+        if (i+1) <= numel(measurement_settings.Direction)
+            messrichtungValue = measurement_settings.Direction{i+1};
+        else
+            messrichtungValue = 'none';
+        end
+        if isempty(messrichtungValue), messrichtungValue = 'none'; end
+
+        % correspondingFieldName als Field (aus VariableNames, Index i)
+        if i <= numel(dataTable.Properties.VariableNames)
+            correspondingFieldName = dataTable.Properties.VariableNames{i};
+        else
+            correspondingFieldName = 'none';
+        end
+        if isempty(correspondingFieldName), correspondingFieldName = 'none'; end
+        
+        % Tags für Matlab-Metadaten
+        tags = [ measurementName, ',', chosenTagMatlab, ...
+                 ',notizen=', char(notizenValue), ...
+                 ',einheit=', char(einheitValue), ...
+                 ',sampleRate=', num2str(sampleRate), ...
+                 ',measuredQuantity=', char(measuredQuantityValue), ...
+                 ',messrichtung=', char(messrichtungValue) ];
+        % Field: correspondingFieldName
+        fields = ['correspondingFieldName="', char(correspondingFieldName), '"'];
+        
+        matlabLines{i} = [ tags, ' ', fields, ' ', num2str(timestamp) ];
+    end
+    
+    % 3) Edge-Metadaten-Zeilen erstellen
+    chosenTagEdge = char(writeTagSyncedEdgeMetaData);
+    % Für Edge: von Index numActiveChannels bis zum Ende der VariableNames
+    startEdgeIdx = numActiveChannels;
+    totalFields = numel(dataTable.Properties.VariableNames);
+    numEdgeLines = totalFields - startEdgeIdx + 1;
+    edgeLines = cell(numEdgeLines, 1);
+    
+    % Fortlaufender Timestamp: Start direkt nach den Matlab-Daten
+    lastMatlabTimestamp = int64(timestamp_base + (numMatlabLines-1)*timestamp_increment);
+    timestamp_edge_base = lastMatlabTimestamp + timestamp_increment;
+    
+    for j = 1:numEdgeLines
+        i_edge = startEdgeIdx + j - 1;
+        timestamp = int64(timestamp_edge_base + (j-1)*timestamp_increment);
+        
+        % Für Edge-Metadaten: Jetzt auch notizen hinzufügen
+        if i_edge <= numel(dataTable.Properties.VariableDescriptions)
+            notizenValue = dataTable.Properties.VariableDescriptions{i_edge};
+        else
+            notizenValue = 'none';
+        end
+        if isempty(notizenValue), notizenValue = 'none'; end
+        
+        % einheit (aus VariableUnits, Index i_edge)
+        if i_edge <= numel(dataTable.Properties.VariableUnits)
+            einheitValue = dataTable.Properties.VariableUnits{i_edge};
+        else
+            einheitValue = 'none';
+        end
+        if isempty(einheitValue), einheitValue = 'none'; end
+        
+        % Tags für Edge-Metadaten: Hier werden notizen und einheit als Tags hinzugefügt
+        tags = [ measurementName, ',', chosenTagEdge, ...
+                 ',sampleRate=', num2str(sampleRate), ...
+                 ',notizen=', char(notizenValue), ...
+                 ',einheit=', char(einheitValue) ];
+        
+        % correspondingFieldName als Field (aus VariableNames, Index i_edge)
+        if i_edge <= numel(dataTable.Properties.VariableNames)
+            correspondingFieldName = dataTable.Properties.VariableNames{i_edge};
+        else
+            correspondingFieldName = 'none';
+        end
+        if isempty(correspondingFieldName), correspondingFieldName = 'none'; end
+        
+        fields = ['correspondingFieldName="', char(correspondingFieldName), '"'];
+        
+        edgeLines{j} = [ tags, ' ', fields, ' ', num2str(timestamp) ];
+    end
+    
+    % 4) Kombiniere Matlab- und Edge-Zeilen und erstelle das Batch
+    allLines = [matlabLines; edgeLines];
+    writeBatch = strjoin(allLines, '\n');
+    
+    disp('Erzeugtes Line Protocol für Matlab- und Edge-Metadaten:');
+    disp(writeBatch);
+    
+    % 5) Sende das Batch an InfluxDB
+    statusMessage = sendLineProtocolToInflux(token, writeBucketName, orgIDName, writeBatch);
+end
+
+
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Funktionen von Florian Oexle
-
+% Wichtig: Synchronisierungssignal läuft immer auf Channel 0!
 
 function messdaten_syncr = SyncMatlabEdgeData(tmp, TT, measurement_settings)
 
@@ -437,7 +609,7 @@ tmp_new(:, isXoverV) = tmp(:, isXoverV) .* measurement_settings.SensitivityValue
 tmp_new(:, isVoverX) = tmp(:, isVoverX) ./ measurement_settings.SensitivityValue(isVoverX) .* double(faktoren(isVoverX)); % Division für "V/x", "faktoren" stammt aus der Umrechnung der Einheiten
 tmp_new.Properties.VariableUnits = string(symunit2str(units_temp)); % Units von sym in String umwandeln
 
-clearvars -except TT tmp tmp_new Unit Type Sensitivity sample_rate measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData TT tmp tmp_new Unit Type Sensitivity sample_rate measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 % Abhängig von dem Vorzeichen der Werte in measurement_settings.Direction
 % sollen die Zeitreiehen aus tmp_new mit -1 multipliziert werden
@@ -471,7 +643,7 @@ tmp_new.Properties.VariableNames = finalResult; % finalResalut in VariableNames 
 % AdditionalNotes in tmp_new_Properties.VariableDescription speichert
 tmp_new.Properties.VariableDescriptions = measurement_settings.AdditionalNotes;
 
-clearvars -except TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 % Synchronisieren der Messungen
 % Zuschneiden der Messungen: Beginne die Daten ab dem
@@ -486,7 +658,7 @@ test = find(TT.sync_signal == 0);
 startIndexTT = test(end)+1;
 TT = TT(startIndexTT:end,:);
 
-clearvars -except TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 % Abtastrate der Messungen der Edge erhöhen auf die Abtastrate der Data Translation Messkarte 
 % mit linearer Interpolation
@@ -494,7 +666,7 @@ fs = tmp_new.Properties.SampleRate; % Abtastrate der Data Translation bestimmen
 newTime = TT.Time(1):seconds(1/fs):TT.Time(end);  % Neuen Zeitvektor bestimmen, auf den die Messdaten der Edge gesampelt werden sollen 
 TT = retime(TT, newTime, 'linear');    % Abtastrate anpassen
 
-clearvars -except TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 % Kürzen der Zeitreihen, sodass diese gleich lang werden:
 sizetmp_newData = size(tmp_new,1);
@@ -506,7 +678,7 @@ tmp_new = tmp_new(1:zuschnitt,:);
 % Zuschneiden der Daten aus der Edge:
 TT = TT(1:zuschnitt,:);
 
-clearvars -except tmp_new TT measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData tmp_new TT measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 % Daten zusammenführen
 % Zuerst die Werte der Data Translation und der Edge speichern
@@ -519,7 +691,7 @@ messdaten = horzcat(tmp_new_Table, TT_Table);
 % Mache eine Timetable, die bei 0 sec beginnt
 messdaten_syncr = table2timetable(messdaten,'SampleRate',tmp_new.Properties.SampleRate);
 
-clearvars -except messdaten_syncr measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData messdaten_syncr measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 end
 
