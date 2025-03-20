@@ -1,7 +1,7 @@
 %% Skript, um manuell Daten in die Influx einzuschreiben, da die Verbindung nicht funktionieren wird
-
+clear;
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData_short21"; 
+measurementName = "realData_short23"; 
 writeBucketName = "daten-roh";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
@@ -16,21 +16,25 @@ maxBatchLimit_Matlab = maxBatchLimit_Edge*20;     % [] bei keinem Limit, sonst d
 edgeDataUnsynced = load('EdgeDaten.mat');
 disp('Edge-Daten geladen');
 
-matlabDataUnsynced_withMeasurementSettings = load('MatlabDaten.mat');
+matlabDataUnsynced_withMeasurementSettings = load('MatlabDaten_verrechnet.mat');
 disp('Matlab-Daten geladen');
 matlabDataUnsynced = rmfield(matlabDataUnsynced_withMeasurementSettings, 'measurement_settings');
 
 
 % Senden von Edge-Daten an InfluxDB
+disp('Senden von Edge-Daten an InfluxDB...');
 statusMessage1 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeEdgeDataTag, edgeDataUnsynced, maxBatchLimit_Edge);
 
 % Senden von Matlab-Daten an InfluxDB
+disp('Senden von Matlab-Daten an InfluxDB...');
 statusMessage2 = convertAndSendTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeMatlabDataTag, matlabDataUnsynced, maxBatchLimit_Matlab);
 
 % Senden von Matlab-Meta-Daten an InfluxDB
+disp('Senden von Matlab-Meta-Daten an InfluxDB...');
 statusMessage3 = sendExampleMatlabMetadata(measurementName, writeBucketName, orgIDName, token, writeMatlabMetadataTag);
 
-% Senden von Matlab-Meta-Daten an InfluxDB
+% Senden von Edge-Meta-Daten an InfluxDB
+disp('Senden von Edge-Meta-Daten an InfluxDB...');
 statusMessage4 = sendExampleEdgeMetadata(measurementName, writeBucketName, orgIDName, token, writeEdgeMetadataTag);
 
 
@@ -189,10 +193,15 @@ function statusMessage = sendExampleMatlabMetadata(measurementName, writeBucketN
     lines = cell(12, 1);
 
     % Definiere die Werte für die bisherigen Tags
-    einheitValues = {'/', 'V/mcm', 'V/mcm', 'V/mcm', 'V/mcm', 'V/mcm', 'N/V', 'N/V', 'N/V', 'mV/g_n', 'mV/g_n', 'mV/g_n'};
     measuredQuantityValues = {'Sync_Signal', 'Displacement', 'Displacement', 'Displacement', 'Displacement', 'Displacement', 'Force', 'Force', 'Force', 'Acceleration', 'Acceleration', 'Acceleration'};
-    messrichtungValues = {'', '+Z', '-X', '+Z', '-Y', '+Z', '+X', '-Y', '+Z', '-Z', '+Y', '+X'};
+    messrichtungValues = {'', '+Z', '-X', '+Z', '+Y', '+Z', '+X', '+Y', '+Z', '+Z', '+Y', '+X'};
     notizenValues = {'Edge Daten', 'Capacity + X-Axis Flat', 'Capacity - X-Axis Round', 'Capacity + 45°-Axis Flat', 'Capacity - Y-Axis Round', 'Capacity + Y-Axis Flat', 'Stationary Dynamometer + X', 'Stationary Dynamometer - Y', 'Stationary Dynamometer + Z', 'Accelerometer - Z-Axis', 'Accelerometer + Y-Axis', 'Accelerometer + X-Axis'};
+    channelNumber = {0,1,2,3,4,5,6,7,8,9,10,11};
+    einheitValues = {'1', 'mcm', 'mcm', 'mcm', 'mcm', 'mcm', 'N', 'N', 'N', 'g_n', 'g_n', 'g_n'};
+    channelNames = { ...
+        'Sync_Signal', 'zDisplacement_1', 'xDisplacement', 'zDisplacement_2', 'yDisplacement', 'zDisplacement_3', ...
+        'xForce', 'yForce', 'zForce', 'zAcceleration', 'yAcceleration', 'xAcceleration' ...
+        };
 
     % Ersetze in notizenValues alle Leerzeichen durch Unterstriche
     for i = 1:length(notizenValues)
@@ -227,17 +236,6 @@ function statusMessage = sendExampleMatlabMetadata(measurementName, writeBucketN
         host = 'none';
     end
 
-    % Definiere die Werte für den Tag "sensitivity"
-    sensitivityValues = {0, 0.00200000000000000, 0.00200000000000000, 0.00200000000000000, 0.00200000000000000, 0.00200000000000000, 500, 500, 200, 10.3100000000000, 10.2300000000000, 10.5000000000000};
-
-    % Definiere die Field-Werte für ChannelName von ch0 bis ch11
-    channelValues = {'ch0','ch1','ch2','ch3','ch4','ch5','ch6','ch7','ch8','ch9','ch10','ch11'};
-    for i = 1:length(channelValues)
-        if isempty(channelValues{i}) || strcmp(channelValues{i}, '')
-            channelValues{i} = 'none';
-        end
-    end
-
     % Berechne den Basis-Zeitstempel in ns (aktuelle Unix-Zeit in ns minus 3600*10^9)
     timestamp_base = posixtime(datetime('now')) * 1e9 - 3600*1e9;
     % Setze das Inkrement auf 0,1ms = 1e5 ns
@@ -257,10 +255,10 @@ function statusMessage = sendExampleMatlabMetadata(measurementName, writeBucketN
             ',messrichtung=', messrichtungValues{i}, ...
             ',notizen=', notizenValues{i}, ...
             ',sampleRate=', num2str(sampleRate), ...
-            ',sensitivity=', num2str(sensitivityValues{i}), ...
+            ',channelNumber=', num2str(channelNumber{i}), ...
             ',topic=', topic, ...
             ',host=', host, ...
-            ' ChannelName="', channelValues{i}, '" ', ...
+            ' channelName="', channelNames{i}, '" ', ...
             num2str(timestamp)];
     end
 

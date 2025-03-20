@@ -164,7 +164,7 @@ function receive
                     end
 
                     data.channelnames = finalResult; % Neu gebildete Namen in data und damit auch handles abspeichern
-                    data.messrichtung(cellfun(@isempty, data.messrichtung)) = {'NV'};
+                    data.messrichtung(cellfun(@isempty, data.messrichtung)) = {'none'};
 
                     %Ende der Berechnung der Faktoren und resultierenden Einheiten der umgerechneten Daten 
                     %
@@ -233,11 +233,12 @@ function receive
         
         % Für jeden Channel:
         for index = 1:length(metadata.channel)
-            % Messrichtunng Minus extrahieren, damit es vorbeugend nicht mitgesendet wird, weil es später mit dem Messwert verrechnet wird
+            % Messrichtung: Falls ein "-" vorne steht, ersetze es durch "+"
             messrichtung_clean = metadata.messrichtung{index};
             if startsWith(messrichtung_clean, "-")
-                messrichtung_clean = messrichtung_clean(2:end); % Entfernt das erste Zeichen
+                messrichtung_clean = strcat("+", messrichtung_clean(2:end)); % Ersetzt "-" durch "+"
             end
+
 
             % Struct befüllen
             data_struct = struct(...
@@ -291,6 +292,17 @@ function receive
             disp('Flush: Zusätzliche Scans werden vom DAQ gelesen ...');
             [ScanData, triggerTime] = handles.d.read("all", "OutputFormat", "Timetable");
             if ~isempty(ScanData)
+
+                % Sensitivitätswerte einrechnen
+                ScanData(:, handles.isXoverV) = ScanData(:, handles.isXoverV) .* handles.lastFilteredData.sensiArray(handles.isXoverV)' .* double(handles.faktoren(handles.isXoverV)); % Multiplikation für "x/V", "faktoren" stammt aus der Umrechnung der Einheiten
+                ScanData(:, handles.isVoverX) = ScanData(:, handles.isVoverX) ./ handles.lastFilteredData.sensiArray(handles.isVoverX)' .* double(handles.faktoren(handles.isVoverX)); % Division für "V/x", "faktoren" stammt aus der Umrechnung der Einheiten
+
+                % Abhängig von dem Vorzeichen der Werte in measurement_settings.Direction
+                % sollen die Zeitreiehen aus tmp_new mit -1 multipliziert werden
+                negative_mask = startsWith(handles.lastFilteredData.messrichtung, "-"); % Logische Maske für alle Einträge mit negativem Vorzeichen ("-")
+                ScanData(:, negative_mask) = ScanData(:, negative_mask) .* -1; % Multipliziere die betroffenen Spalten mit -1
+
+
                 % Verarbeitung analog zur sendData()-Funktion:
                 timeVec = posixtime(triggerTime + ScanData.Time) * 1000 *msToNs - 3600*1000*msToNs;
                 Ttime = table(int64(timeVec), 'VariableNames', {'time'});
