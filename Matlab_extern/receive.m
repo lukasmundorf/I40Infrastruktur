@@ -2,6 +2,8 @@ function receive
     %% Hauptskript
     clc;
     daqreset;  % Setzt das gesamte DAQ-Subsystem zurück
+    clear;
+    warning('off', 'all') % Warning-Messages abschatlen
     % Vorherige Timer löschen (falls vorhanden)
     oldTimers = timerfind;
     if ~isempty(oldTimers)
@@ -83,7 +85,7 @@ function receive
                 
                 % Bei 'start' den Zustand neu filtern und das DAQ-Objekt updaten:
                 if strcmpi(data.startStop, "start")
-                    % Filtere die Channels:
+                    % Filtere die aktiven Channels von den leeren Strings in neuem Array channelNumbers:
                     channels = data.channel;
                     channelNumbers = [];
                     for k = 1:length(channels)
@@ -95,22 +97,84 @@ function receive
                             end
                         end
                     end
+
+                    % sortiere die aktiven Channels nach Ihrer Zahl
                     channelNumbers = sort(channelNumbers);
                     activeIdx = channelNumbers + 1;
                     
+                    % Überschreibe die Arrays mit Informationen einzig mit
+                    % den Informationen, die aktive Channels beinhalten
                     data.einheit      = data.einheit(activeIdx);
                     data.messrichtung = data.messrichtung(activeIdx);
                     data.notizen      = data.notizen(activeIdx);
                     data.sensiArray   = data.sensiArray(activeIdx);
                     data.measuredQuantity = data.measuredQuantity(activeIdx);
                     data.channel = arrayfun(@(x) num2str(x), channelNumbers, 'UniformOutput', false);
-                    
+
+                    % Verrechnung der Volts aus der Messkarte mit den Einheiten der Sensitivitätsfaktoren
+                    % 
+                    % Erstelle einen "V" Array der Länge der Anzahl Aktiver Channels
+                    string_array = repmat(("V"), 1, length(activeIdx));
+                    symbolicUnits_tmp = str2symunit(string_array); % Alle VariableUnits aus tmp in symunit umwandeln
+                    % Felder innerhalb von Unit, die keine korrekten Einheiten beinhalten,
+                    % werden auf 1 gesetzt. Anschließend werden alle Felder in ein
+                    % symunit-Objekt umgewandelt.
+                    for i=1:length(data.einheit)
+                        try
+                            symbolicUnits_unit(i) = str2symunit(data.einheit(i));
+                        catch
+                            %warning('Die Einheit ''%s'' in der Varibale ''%s(%i)'' konnte nicht in eine symunit umgewandelt werden. Sie wurde stattdessen auf den Wert 1 gesetzt.', measurement_settings.SensitivityUnit(i), 'measurement_settings.SensitivityUnit', i)
+                            data.einheit{i} = '1'; % Feld von Unit(i) auf 1 setzen, damit es in ein symunit-Objekt umgewandelt werden kann
+                            symbolicUnits_unit(i) = str2symunit(data.einheit(i));
+                        end
+                    end
+
+                    % Verrechnen der Sensitivitäten
+                    handles.isXoverV = arrayfun(@(x) contains(string(x), '/V') || ~isempty(regexp(string(x), '/.*V', 'once')), data.einheit); % Logische Indizes für "/V"
+                    handles.isVoverX = contains(string(data.einheit), 'V/'); % Logische Indizes für "V/"
+                    ergebnis = str2symunit(int2str(ones(length(symbolicUnits_unit),1)))'; % symunit-Array deklarieren mit lauter 1en je Feld
+                    ergebnis(:, handles.isXoverV) = symbolicUnits_tmp(:, handles.isXoverV) .* symbolicUnits_unit(handles.isXoverV); % Multiplikation für "x/V"
+                    ergebnis(:, handles.isVoverX) = symbolicUnits_tmp(:, handles.isVoverX) ./ symbolicUnits_unit(handles.isVoverX); % Division für "V/x"
+                    % Fertig berechnete Einheiten und entstandene Faktoren nach Verrechnung der Sensitivitätseinheiten Mit Spannung aus der Messkarte
+                    [handles.faktoren,units_temp]=separateUnits(ergebnis); %Faktoren und Einheiten trennen
+
+                    % Ermittelte finale Einheiten nach Verrechung der Sensititvitätseinheiten auf data.einheit überschreiben
+                    data.einheit = string(symunit2str(units_temp));
+
+                    % Namen der Zeitreihen aus MeasuredQuantity und Messrichtung ableiten
+                    % Richtungsangaben bereinigen (Vorzeichen entfernen und klein schreiben)
+                    formatted_direction = lower(replace(data.messrichtung, ["+", "-"], ""));
+                    has_direction = data.messrichtung ~= ""; % Logische Maske für nicht-leere Richtungen
+                    result = string(data.measuredQuantity);
+                    result(has_direction) = string(formatted_direction(has_direction)) + string(data.measuredQuantity(has_direction)); % Nur die Einträge mit Richtung kombinieren
+
+                    % Doppelte Strings in result hochnummerieren
+                    % Hochzählende Nummerierung für doppelte Strings
+                    [uniqueStrings, ~, idx] = unique(result, 'stable');
+                    counts = accumarray(idx, 1); % Zähle Vorkommen jedes einzigartigen Strings
+                    % Erstelle das finale Ergebnis mit Nummerierung
+                    finalResult = strings(size(result));
+                    for i = 1:length(uniqueStrings)
+                        occurrences = find(idx == i);
+                        if length(occurrences) > 1
+                            finalResult(occurrences) = uniqueStrings(i) + "_" + string(1:length(occurrences));
+                        else
+                            finalResult(occurrences) = uniqueStrings(i);
+                        end
+                    end
+
+                    data.channelnames = finalResult; % Neu gebildete Namen in data und damit auch handles abspeichern
+                    data.messrichtung(cellfun(@isempty, data.messrichtung)) = {'NV'};
+
+                    %Ende der Berechnung der Faktoren und resultierenden Einheiten der umgerechneten Daten 
+                    %
+
                     % Aktualisiere im DAQ-Objekt die aktiven Kanäle:
                     while ~isempty(handles.d.Channels)
                         handles.d.removechannel(1);
                     end
                     for ch = channelNumbers
-                        handles.d.addinput("DT9836(00)", ch, "Voltage");
+                        handles.d.addinput("DT9834(00)", ch, "Voltage");
                     end
                     disp("Aktuell konfigurierte Channels im DAQ-Objekt:");
                     disp(handles.d.Channels);
@@ -120,16 +184,17 @@ function receive
                     % Speichere den gefilterten Zustand als letzten gültigen Stand
                     handles.lastFilteredData = data;
                     
-                    fprintf("\n--- Nachricht nach Kürzen ---\n");
+                    fprintf("\n--- Nachricht nach Kürzen und Verrechnung der Einheiten ---\n");
                     fprintf("Start/Stop Status: %s\n", data.startStop);
                     fprintf("Abtastrate (Hz): %d\n", data.abtastrateHz);
                     fprintf("Messungsname: %s\n", data.measurementName);
                     fprintf("Channels: %s\n", strjoin(data.channel, ", "));
+                    fprintf("ChannelNames: %s\n", strjoin(data.channelnames, ", "));
                     fprintf("Einheiten: %s\n", strjoin(data.einheit, ", "));
-                    fprintf("Messrichtungen: %s\n", strjoin(data.messrichtung, ", "));
+                    fprintf("Messrichtungen (noch nicht verrechnet): %s\n", strjoin(data.messrichtung, ", "));
                     fprintf("Notizen: %s\n", strjoin(data.notizen, ", "));
-                    fprintf("MeasuredQuantity: %s\n", strjoin(data.measuredQuantity, ", "));
-                    fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
+                    % fprintf("MeasuredQuantity: %s\n", strjoin(data.measuredQuantity, ", "));
+                    % fprintf("Sensitivitäten: %s\n", mat2str(data.sensiArray));
                     fprintf("Aktuelle Abtastrate: %d Hz\n", handles.d.Rate);
                     
                     % Sende Metadaten per MQTT (über handles.dataTopic)
@@ -167,19 +232,26 @@ function receive
         t_ms = round(t * 1000 * msToNs);
         
         % Für jeden Channel:
-        for idx = 1:length(metadata.channel)
+        for index = 1:length(metadata.channel)
+            % Messrichtunng Minus extrahieren, damit es vorbeugend nicht mitgesendet wird, weil es später mit dem Messwert verrechnet wird
+            messrichtung_clean = metadata.messrichtung{index};
+            if startsWith(messrichtung_clean, "-")
+                messrichtung_clean = messrichtung_clean(2:end); % Entfernt das erste Zeichen
+            end
+
+            % Struct befüllen
             data_struct = struct(...
-                'ChannelName', sprintf('ch%s', metadata.channel{idx}), ...
-                'time', t_ms + idx, ...  % Leicht erhöhter Zeitstempel
-                'sensitivity', num2str(metadata.sensiArray(idx)), ...
-                'messrichtung', metadata.messrichtung{idx}, ...
-                'notizen', metadata.notizen{idx}, ...
-                'measuredQuantity', metadata.measuredQuantity{idx}, ...
-                'einheit', metadata.einheit{idx}, ...
+                'channelName', metadata.channelnames(index), ...
+                'channelNumber', metadata.channel(index), ... % Nummerierung der Channels
+                'time', t_ms + index, ...  % Leicht erhöhter Zeitstempel
+                'messrichtung', messrichtung_clean, ... % Messrichtung ohne führendes "-" 
+                'notizen', metadata.notizen{index}, ...
+                'measuredQuantity', metadata.measuredQuantity{index}, ...
+                'einheit', metadata.einheit{index}, ...  % Wert 1 beschreibt "keine Einheit"
                 'sampleRate', metadata.abtastrateHz, ...
-                'dataType', 'MatlabMetadata', ...
+                'dataType', 'matlabMetadata', ...
                 'measurementName', metadata.measurementName);
-            
+
             json_str = jsonencode(data_struct);
             disp(['Gesendete Metadaten: ', json_str]);
             write(handles.mqttClient, handles.dataTopic, json_str);
@@ -232,7 +304,7 @@ function receive
                 Tcombined = [Ttime, Tvolt];
 
                 newData = table2struct(Tcombined, 'ToScalar', false);
-                [newData.dataType] = deal("MatlabData");
+                [newData.dataType] = deal("matlabData");
                 [newData.measurementName] = deal(handles.lastFilteredData.measurementName);
 
                 % Hänge die neuen Daten an den Buffer an:
@@ -290,12 +362,23 @@ function receive
             [ScanData, triggerTime] = handles.d.read("all", "OutputFormat", "Timetable");
             disp("Nach read: ");
             disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
+
+            % Sensitivitätswerte einrechnen
+            ScanData(:, handles.isXoverV) = ScanData(:, handles.isXoverV) .* handles.lastFilteredData.sensiArray(handles.isXoverV)' .* double(handles.faktoren(handles.isXoverV)); % Multiplikation für "x/V", "faktoren" stammt aus der Umrechnung der Einheiten
+            ScanData(:, handles.isVoverX) = ScanData(:, handles.isVoverX) ./ handles.lastFilteredData.sensiArray(handles.isVoverX)' .* double(handles.faktoren(handles.isVoverX)); % Division für "V/x", "faktoren" stammt aus der Umrechnung der Einheiten
+
+            % Abhängig von dem Vorzeichen der Werte in measurement_settings.Direction
+            % sollen die Zeitreiehen aus tmp_new mit -1 multipliziert werden
+            negative_mask = startsWith(handles.lastFilteredData.messrichtung, "-"); % Logische Maske für alle Einträge mit negativem Vorzeichen ("-")
+            ScanData(:, negative_mask) = ScanData(:, negative_mask) .* -1; % Multipliziere die betroffenen Spalten mit -1
             
             % Berechne den Unix-Zeitstempel (in Millisekunden)
+            %Erstellen einer Tabelle aus Zeitstemplen, die später zu den Messdaten hinzugefügt wird
             timeVec = posixtime(triggerTime + ScanData.Time) * 1000 * msToNs - 3600 * 1000 * msToNs; %Zeitzonen- Umrechnung -> immer im Debug nachschauen!
             Ttime = table(int64(timeVec), 'VariableNames', {'time'});
             
             % Extrahiere die Spannungsdaten und wandle sie in eine Tabelle um.
+            %%%%%%%%%%%%%%%%%%%%%%%%% hier optimierungspotential wegenunnötiger Umwandlung in Arrays und dann wieder zurück
             voltageData = table2array(ScanData);
             % Verwende die aktiv gefilterten Kanalnummern aus lastFilteredData für die Feldnamen.
             activeChannels = handles.lastFilteredData.channel;  % z. B. {"0", "2", "4", "8", "10"}
@@ -308,7 +391,7 @@ function receive
             % Wandle die kombinierte Tabelle in ein Struct-Array um (jede Zeile ein Struct).
             newData = table2struct(Tcombined, 'ToScalar', false);
             
-            % Füge für jedes Struct zusätzliche Felder hinzu:
+            % Füge für jedes Struct zusätzliche Felder für Tags hinzu:
             [newData.dataType] = deal("matlabData");
             [newData.measurementName] = deal(handles.lastFilteredData.measurementName);
             
@@ -335,13 +418,14 @@ function receive
     end
 
     function dispLastFiltered()
-        fprintf("\n--- Nachricht nach Kürzen (letzter gültiger Stand) ---\n");
+        fprintf("\n--- Nachricht nach Kürzen und Verrechnung der Einheiten (letzter gültiger Stand) ---\n");
         fprintf("Start/Stop Status: %s\n", handles.lastFilteredData.startStop);
         fprintf("Abtastrate (Hz): %d\n", handles.lastFilteredData.abtastrateHz);
         fprintf("Messungsname: %s\n", handles.lastFilteredData.measurementName);
         fprintf("Channels: %s\n", strjoin(handles.lastFilteredData.channel, ", "));
+        fprintf("ChannelNames: %s\n", strjoin(handles.lastFilteredData.channelnames, ", "));
         fprintf("Einheiten: %s\n", strjoin(handles.lastFilteredData.einheit, ", "));
-        fprintf("Messrichtungen: %s\n", strjoin(handles.lastFilteredData.messrichtung, ", "));
+        fprintf("Messrichtungen (noch nicht einberechnet): %s\n", strjoin(handles.lastFilteredData.messrichtung, ", "));
         fprintf("Notizen: %s\n", strjoin(handles.lastFilteredData.notizen, ", "));
         fprintf("MeasuredQuantity: %s\n", strjoin(handles.lastFilteredData.measuredQuantity, ", "));
         fprintf("Sensitivitäten: %s\n", mat2str(handles.lastFilteredData.sensiArray));
