@@ -1860,6 +1860,7 @@
         "type": "datasource",
         "uid": "grafana"
       },
+      "description": "Sync-Signal muss auf Channel 0 laufen!\n",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -2018,7 +2019,7 @@
         "updateEnabled": "auto"
       },
       "pluginVersion": "5.0.0",
-      "title": "Panel Title",
+      "title": "Rohdatensynchronisation",
       "type": "volkovlabs-form-panel"
     }
   ],
@@ -2036,6 +2037,6 @@
   "timezone": "browser",
   "title": "MessungFinal01",
   "uid": "aed13cc2wvh3cg",
-  "version": 11,
+  "version": 12,
   "weekStart": ""
 }
