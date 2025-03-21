@@ -12,11 +12,11 @@ app.use(express.json());
 app.use(cors());
 
 /**
- * Transformiert die eingehende JSON-Nachricht in das von MATLAB erwartete Format.
+ * Endpunkt für Grafana-Post-Requests zur Weiterleitung an den MATLAB-Microservice.
  */
 app.post('/proxy', async (req, res) => {
     try {
-        console.log("Original Body von Grafana:", req.body);
+        console.log("Original Body von Grafana (MATLAB):", req.body);
 
         // 1. ch_checkboxes: Erhalte Array und fülle auf 12 Einträge auf
         const checkboxes = Array.isArray(req.body.ch_checkboxes) ? req.body.ch_checkboxes : [];
@@ -90,7 +90,7 @@ app.post('/proxy', async (req, res) => {
             ]
         };
 
-        console.log("Umgewandelter Body:", newBody);
+        console.log("Umgewandelter Body für MATLAB:", newBody);
 
         // Anfrage an den MATLAB-Microservice weiterleiten
         const response = await axios.post(
@@ -107,6 +107,49 @@ app.post('/proxy', async (req, res) => {
             console.error("Antwort vom Microservice:", error.response.data);
         }
         res.status(500).json({ error: "Fehler beim Weiterleiten der Anfrage" });
+    }
+});
+
+/**
+ * Neuer Endpunkt für Requests mit 6 Schlüssel-Wert-Paaren.
+ * Hier wird der eingehende Body transformiert, sodass er die Form
+ * {"nargout":1, "rhs": [measurementName, queryBucket, writeBucket, orgID, batchGröße, token]}
+ * erhält, bevor er an den synchronize_matlab_edge_data Container weitergeleitet wird.
+ */
+app.post('/sync', async (req, res) => {
+    try {
+        console.log("Original Body von Grafana (Sync):", req.body);
+
+        // Transformation des eingehenden Bodys in das MATLAB-kompatible Format:
+        const newBody = {
+            nargout: 1,
+            rhs: [
+                req.body.measurementName || "",
+                req.body.queryBucket || "",
+                req.body.writeBucket || "",
+                req.body.orgID || "",
+                req.body["batchGröße"] || 0,
+                req.body.token || ""
+            ]
+        };
+
+        console.log("Umgewandelter Body für Sync:", newBody);
+
+        // Weiterleitung der Anfrage an den entsprechenden Service über den Container-Namen:
+        const response = await axios.post(
+            'http://synchronize_matlab_edge_data:9910/synchronize_matlab_edge_data/SynchronizeMatlabEdgeDataDockerContainer',
+            newBody,
+            { headers: { 'Content-Type': 'application/json' } }
+        );
+
+        // Antwort an Grafana zurückgeben
+        res.json(response.data);
+    } catch (error) {
+        console.error("Fehler beim Synchronisieren:", error.message);
+        if (error.response) {
+            console.error("Antwort vom Synchronize Service:", error.response.data);
+        }
+        res.status(500).json({ error: "Fehler beim Weiterleiten der Sync-Anfrage" });
     }
 });
 

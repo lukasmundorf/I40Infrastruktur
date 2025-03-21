@@ -43,8 +43,8 @@
         "uid": "grafana"
       },
       "gridPos": {
-        "h": 16,
-        "w": 23,
+        "h": 5,
+        "w": 24,
         "x": 0,
         "y": 0
       },
@@ -1854,6 +1854,172 @@
       "pluginVersion": "5.0.0",
       "title": "Steuerung der Messung",
       "type": "volkovlabs-form-panel"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "id": 2,
+      "options": {
+        "buttonGroup": {
+          "orientation": "center",
+          "size": "md"
+        },
+        "confirmModal": {
+          "body": "Please confirm to update changed values",
+          "cancel": "Cancel",
+          "columns": {
+            "include": [
+              "name",
+              "oldValue",
+              "newValue"
+            ],
+            "name": "Label",
+            "newValue": "New Value",
+            "oldValue": "Old Value"
+          },
+          "confirm": "Confirm",
+          "elementDisplayMode": "modified",
+          "title": "Confirm update request"
+        },
+        "elementValueChanged": "",
+        "elements": [
+          {
+            "hidden": false,
+            "id": "measurementName",
+            "labelWidth": 21,
+            "section": "",
+            "title": "Name der Messung",
+            "tooltip": "",
+            "type": "string",
+            "uid": "5dbab8d1-d727-484d-b105-b288a34afe88",
+            "unit": "",
+            "value": ""
+          },
+          {
+            "hidden": false,
+            "id": "queryBucket",
+            "labelWidth": 21,
+            "section": "",
+            "title": "Query-Bucket-Name",
+            "tooltip": "Name des Buckets, aus dem unsynchronisierte Daten abgefragt werden sollen",
+            "type": "string",
+            "uid": "2a60e990-bd5e-4aeb-938f-04658713f912",
+            "unit": "",
+            "value": ""
+          },
+          {
+            "hidden": false,
+            "id": "writeBucket",
+            "labelWidth": 21,
+            "section": "",
+            "title": "Write-Bucket-Name",
+            "tooltip": "Name des Buckets, in den synchronisierte Daten geschrieben werden sollen",
+            "type": "string",
+            "uid": "2b0cfcbe-836a-4da5-abc5-e759375b24f3",
+            "unit": "",
+            "value": ""
+          },
+          {
+            "hidden": false,
+            "id": "orgID",
+            "labelWidth": 21,
+            "section": "",
+            "title": "Influx Org ID",
+            "tooltip": "ID der Organisation in InfluxDB",
+            "type": "string",
+            "uid": "c4d507f9-d028-44dc-8dc9-b87bd4137281",
+            "unit": "",
+            "value": ""
+          },
+          {
+            "id": "batchGröße",
+            "labelWidth": 21,
+            "section": "",
+            "title": "Batch-Größe",
+            "tooltip": "Anzahl Zeilen Line Protocol, die gleichzeitig in die Influx geschrieben werden (guter Wert: 5000)",
+            "type": "number",
+            "uid": "1880058e-999b-4a90-a1ee-ad91699730ca",
+            "unit": "",
+            "value": 0
+          },
+          {
+            "hidden": false,
+            "id": "token",
+            "labelWidth": 21,
+            "section": "",
+            "title": "Influx Token",
+            "tooltip": "Vergebener Token von Influx, der Abfrage und Schreibrechte auf die Datenbank verteilt",
+            "type": "string",
+            "uid": "e3bcee2e-2a7b-4b54-87c6-8622d759a6fe",
+            "unit": "",
+            "value": ""
+          }
+        ],
+        "initial": {
+          "code": "console.log(context.panel.data, context.panel.response, context.panel.initial, context.panel.elements);\n\nreturn;\n\n/**\n * Data Source\n * Requires form elements to be defined\n */\nconst dataQuery = context.utils.toDataQueryResponse(context.panel.response);\nconsole.log(dataQuery);",
+          "contentType": "application/json",
+          "getPayload": "return {}",
+          "highlight": false,
+          "highlightColor": "red",
+          "method": "-",
+          "payload": {}
+        },
+        "layout": {
+          "orientation": "horizontal",
+          "padding": 10,
+          "sectionVariant": "default",
+          "variant": "single"
+        },
+        "reset": {
+          "backgroundColor": "purple",
+          "foregroundColor": "yellow",
+          "icon": "process",
+          "text": "Reset",
+          "variant": "hidden"
+        },
+        "resetAction": {
+          "code": "if (context.panel.response) {\n  context.grafana.notifySuccess(['Update', 'Values updated successfully.']);\n  context.grafana.refresh();\n} else {\n  context.grafana.notifyError(['Update', 'An error occurred updating values.']);\n}",
+          "confirm": false,
+          "getPayload": "return {}",
+          "mode": "initial",
+          "payload": {}
+        },
+        "saveDefault": {
+          "icon": "save",
+          "text": "Save Default",
+          "variant": "hidden"
+        },
+        "submit": {
+          "backgroundColor": "purple",
+          "foregroundColor": "yellow",
+          "icon": "sync",
+          "text": "Starte Synchronisation",
+          "variant": "primary"
+        },
+        "sync": true,
+        "update": {
+          "code": "if (context.panel.response) {\n  context.grafana.notifySuccess(['Update', 'Synchronisierung Erfolgreich!']);\n  context.grafana.refresh();\n} else {\n  context.grafana.notifyError(['Update', 'An error occurred updating values.']);\n}",
+          "confirm": false,
+          "contentType": "application/json",
+          "getPayload": "const payload = {};\ncontext.panel.elements.forEach((element) => {\n  if (!element.value) {\n    return;\n  }\n  payload[element.id] = element.value;\n})\nreturn payload;",
+          "method": "POST",
+          "payload": {},
+          "payloadMode": "all",
+          "url": "http://localhost:5050/sync"
+        },
+        "updateEnabled": "auto"
+      },
+      "pluginVersion": "5.0.0",
+      "title": "Panel Title",
+      "type": "volkovlabs-form-panel"
     }
   ],
   "refresh": "",
@@ -1870,6 +2036,6 @@
   "timezone": "browser",
   "title": "MessungFinal01",
   "uid": "aed13cc2wvh3cg",
-  "version": 7,
+  "version": 11,
   "weekStart": ""
 }
