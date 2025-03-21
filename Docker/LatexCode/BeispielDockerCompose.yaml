@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  app:
+    container_name: service1 # Name des Containers
+    image: myapp:latest # Name des Images
+    ports:
+      - "80:5000"  # Portweiterleitung: Host-Port 80 → Container-Port 5000
+    volumes:
+      - ./app:/usr/src/app  # Bind Mount für Anwendungscode
+    depends_on:
+      - db  # App startet erst, wenn DB bereit ist
+
+  db:
+    container_name: service2
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data  # Named Volume für persistente Daten
+    environment:
+      - POSTGRES_USER=user # Umgebungsvariablen für DB-Konfiguration
+      - POSTGRES_PASSWORD=pass
+volumes:
+  db_data:
+
