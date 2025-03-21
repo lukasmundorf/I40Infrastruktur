@@ -14,7 +14,7 @@ app.use(cors());
 /**
  * Endpunkt für Grafana-Post-Requests zur Weiterleitung an den MATLAB-Microservice.
  */
-app.post('/proxy', async (req, res) => {
+app.post('/measurement', async (req, res) => {
     try {
         console.log("Original Body von Grafana (MATLAB):", req.body);
 

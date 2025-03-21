@@ -1847,7 +1847,7 @@
           "method": "POST",
           "payload": {},
           "payloadMode": "all",
-          "url": "http://localhost:5050/proxy"
+          "url": "http://localhost:5050/measurement"
         },
         "updateEnabled": "auto"
       },
@@ -2037,6 +2037,6 @@
   "timezone": "browser",
   "title": "MessungFinal01",
   "uid": "aed13cc2wvh3cg",
-  "version": 12,
+  "version": 13,
   "weekStart": ""
 }
