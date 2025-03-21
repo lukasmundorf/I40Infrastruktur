@@ -1,7 +1,7 @@
 %% Skript, um manuell Daten in die Influx einzuschreiben, da die Verbindung nicht funktionieren wird
 clear;
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "realData_short23"; 
+measurementName = "realData_short27"; 
 writeBucketName = "daten-roh";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
@@ -194,7 +194,7 @@ function statusMessage = sendExampleMatlabMetadata(measurementName, writeBucketN
 
     % Definiere die Werte für die bisherigen Tags
     measuredQuantityValues = {'Sync_Signal', 'Displacement', 'Displacement', 'Displacement', 'Displacement', 'Displacement', 'Force', 'Force', 'Force', 'Acceleration', 'Acceleration', 'Acceleration'};
-    messrichtungValues = {'', '+Z', '-X', '+Z', '+Y', '+Z', '+X', '+Y', '+Z', '+Z', '+Y', '+X'};
+    messrichtungValues = {'', '+Z', '+X', '+Z', '+Y', '+Z', '+X', '+Y', '+Z', '+Z', '+Y', '+X'};
     notizenValues = {'Edge Daten', 'Capacity + X-Axis Flat', 'Capacity - X-Axis Round', 'Capacity + 45°-Axis Flat', 'Capacity - Y-Axis Round', 'Capacity + Y-Axis Flat', 'Stationary Dynamometer + X', 'Stationary Dynamometer - Y', 'Stationary Dynamometer + Z', 'Accelerometer - Z-Axis', 'Accelerometer + Y-Axis', 'Accelerometer + X-Axis'};
     channelNumber = {0,1,2,3,4,5,6,7,8,9,10,11};
     einheitValues = {'1', 'mcm', 'mcm', 'mcm', 'mcm', 'mcm', 'N', 'N', 'N', 'g_n', 'g_n', 'g_n'};

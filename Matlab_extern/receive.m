@@ -111,6 +111,11 @@ function receive
                     data.measuredQuantity = data.measuredQuantity(activeIdx);
                     data.channel = arrayfun(@(x) num2str(x), channelNumbers, 'UniformOutput', false);
 
+                    % ersetze alle leeren Strings in notizen durch 'none'
+                    emptyIdx = cellfun(@isempty, data.notizen);
+                    data.notizen(emptyIdx) = {'none'};
+
+
                     % Verrechnung der Volts aus der Messkarte mit den Einheiten der Sensitivitätsfaktoren
                     % 
                     % Erstelle einen "V" Array der Länge der Anzahl Aktiver Channels

@@ -49,11 +49,11 @@ services:
       - MATLAB_RUNTIME=/matlabruntime # Beispiel-Variable für MATLAB Runtime
       - MQTT_BROKER=mosquitto
 
-  matlab_request:
-    image: matlab-request
-    container_name: matlab_request
+  synchronize_matlab_edge_data:
+    image: synchronize-matlab-edge-data
+    container_name: synchronize_matlab_edge_data
     ports:
-      - "9901:9910"
+      - "9902:9910"
     depends_on:
       - influxdb
 

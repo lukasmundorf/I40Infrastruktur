@@ -23,6 +23,9 @@ http-to-mqttmicroserviceDockerImage/
 Matlab_requestproductionServerArchive/
 Matlab-requestmicroserviceDockerImage/
 
+synchronize_matlab_edge_dataproductionServerArchive/
+synchronize-matlab-edge-datamicroserviceDockerImage/
+
 Messung_gui_12plots.mlapp
 SettingsApp_gui.mlapp
 
