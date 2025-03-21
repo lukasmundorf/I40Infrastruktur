@@ -27,11 +27,6 @@ services:
     depends_on:
       - influxdb
       - mosquitto
-    environment:
-      - INFLUX_HOST=http://influxdb:8086
-      - INFLUX_TOKEN=my-secret-token
-      - INFLUX_ORG=my-org
-      - INFLUX_BUCKET=my-bucket
     volumes:
       - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
 
