@@ -25,8 +25,8 @@ function receive
 
     % MQTT-Broker-Adresse und Topics:
     handles.mqttClient = mqttclient("tcp://localhost:1884");
-    handles.topic = "test/control";    % Für Steuerbefehle
-    handles.dataTopic = "test/topic";    % Für das Senden von Daten
+    handles.topic = "control/measurement";    % Für Steuerbefehle
+    handles.dataTopic = "data/raw/sensor";    % Für das Senden von Daten
 
     % Verbindung prüfen und Topics abonnieren
     disp("Verbindung hergestellt: " + string(handles.mqttClient.Connected));
