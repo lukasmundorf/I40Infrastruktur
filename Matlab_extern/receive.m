@@ -410,7 +410,7 @@ function receive
             
             % Füge für jedes Struct zusätzliche Felder für Tags hinzu:
             [newData.dataType] = deal("matlabData");
-            [newData.measurementName] = deal(handles.lastFilteredData.measurementName);
+            [newData.measurementName] = deal(handles.lastFilteredData.measurementName); %füge evtl für bessere Performance lieber eine Tabellenspalte vorher hinzu, anstatt deal zu nutzen
             
             % Hänge die neuen Daten an den Puffer an.
             handles.measurementBuffer = [handles.measurementBuffer; newData(:)];
@@ -422,7 +422,7 @@ function receive
                 
                 jsonStr = jsonencode(packet);
                 %disp(jsonStr);
-                write(handles.mqttClient, handles.dataTopic, jsonStr);
+                write(handles.mqttClient, handles.dataTopic, jsonStr,QualityOfService=1);
                 %fprintf('Gesendetes Datenpaket: %s\n', jsonStr);
             end
             % Messe die verstrichene Zeit von read bis Ende des aktuellen Schleifendurchlaufs
