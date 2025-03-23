@@ -314,10 +314,8 @@ function receive
                 voltageData = table2array(ScanData);
                 nChannels = size(voltageData, 2);
 
-                % Verwende die aktiven Kanäle aus lastFilteredData für die Spaltennamen:
-                activeChannels = handles.lastFilteredData.channel;
-                varNames = cellfun(@(ch) sprintf('voltage%s', ch), activeChannels, 'UniformOutput', false);
-                Tvolt = array2table(voltageData, 'VariableNames', varNames);
+                % Verwende die aktiven Kanalnamen aus lastFilteredData für die Spaltennamen:
+                Tvolt = array2table(voltageData, 'VariableNames', handles.lastFilteredData.channelnames);
                 Tcombined = [Ttime, Tvolt];
 
                 newData = table2struct(Tcombined, 'ToScalar', false);
@@ -397,10 +395,8 @@ function receive
             % Extrahiere die Spannungsdaten und wandle sie in eine Tabelle um.
             %%%%%%%%%%%%%%%%%%%%%%%%% hier optimierungspotential wegenunnötiger Umwandlung in Arrays und dann wieder zurück
             voltageData = table2array(ScanData);
-            % Verwende die aktiv gefilterten Kanalnummern aus lastFilteredData für die Feldnamen.
-            activeChannels = handles.lastFilteredData.channel;  % z. B. {"0", "2", "4", "8", "10"}
-            varNames = cellfun(@(ch) sprintf('voltage%s', ch), activeChannels, 'UniformOutput', false);
-            Tvolt = array2table(voltageData, 'VariableNames', varNames);
+            % Verwende die aktiv gefilterten Kanalnamen aus lastFilteredData für die Feldnamen.
+            Tvolt = array2table(voltageData, 'VariableNames', handles.lastFilteredData.channelnames);
             
             % Kombiniere Zeit und Spannungsdaten.
             Tcombined = [Ttime, Tvolt];
