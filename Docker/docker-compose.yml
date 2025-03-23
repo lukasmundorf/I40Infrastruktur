@@ -33,16 +33,10 @@ services:
   http_to_mqtt_service:
     image: http-to-mqtt
     container_name: http_to_mqtt_service
-    platform: linux/amd64
     ports:
       - "9900:9910" # Externer Port für deinen HTTP-Endpunkt
     depends_on:
       - mosquitto
-    volumes:
-      - ./http-to-mqttmicroserviceDockerImage/matlabruntime:/matlabruntime:ro # Falls Runtime-Dateien nötig sind
-    environment:
-      - MATLAB_RUNTIME=/matlabruntime # Beispiel-Variable für MATLAB Runtime
-      - MQTT_BROKER=mosquitto
 
   synchronize_matlab_edge_data:
     image: synchronize-matlab-edge-data
