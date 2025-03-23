@@ -393,14 +393,12 @@ function receive
             Ttime = table(int64(timeVec), 'VariableNames', {'time'});
             
             % Extrahiere die Spannungsdaten und wandle sie in eine Tabelle um.
-            %%%%%%%%%%%%%%%%%%%%%%%%% hier optimierungspotential wegenunnötiger Umwandlung in Arrays und dann wieder zurück
-            voltageData = table2array(ScanData);
-            % Verwende die aktiv gefilterten Kanalnamen aus lastFilteredData für die Feldnamen.
-            Tvolt = array2table(voltageData, 'VariableNames', handles.lastFilteredData.channelnames);
-            
+            ScanData = timetable2table(ScanData, 'ConvertRowTimes', false);
+            ScanData.Properties.VariableNames = handles.lastFilteredData.channelnames;
+
             % Kombiniere Zeit und Spannungsdaten.
-            Tcombined = [Ttime, Tvolt];
-            
+            Tcombined = [Ttime, ScanData];
+
             % Wandle die kombinierte Tabelle in ein Struct-Array um (jede Zeile ein Struct).
             newData = table2struct(Tcombined, 'ToScalar', false);
             
