@@ -392,7 +392,7 @@ function receive
             timeVec = posixtime(triggerTime + ScanData.Time) * 1000 * msToNs - 3600 * 1000 * msToNs; %Zeitzonen- Umrechnung -> immer im Debug nachschauen!
             Ttime = table(int64(timeVec), 'VariableNames', {'time'});
             
-            % Extrahiere die Spannungsdaten und wandle sie in eine Tabelle um.
+            % Konvertiere timetable zu table, Spalte "Time" wurde schon ausgewertet
             ScanData = timetable2table(ScanData, 'ConvertRowTimes', false);
             ScanData.Properties.VariableNames = handles.lastFilteredData.channelnames;
 
