@@ -1,14 +1,14 @@
 %% Hauptskript: Synchronisation der Daten
 
-function response = SynchronizeMatlabEdgeDataDockerContainer(measurementName, queryBucketName, writeBucketName, orgIDName, sendBatchSize, token)
+% function response = SynchronizeMatlabEdgeDataDockerContainer(measurementName, queryBucketName, writeBucketName, orgIDName, sendBatchSize, token)
 
 %% Testparameter (zum Testen – in der finalen Microservice-Version entfernen)
-% measurementName         = "realData_short25"; 
-% queryBucketName         = "daten-roh";
-% writeBucketName         = "daten-aufbereitet";
-% orgIDName               = "4c0bacdd5f5d7868";
-% sendBatchSize           = 5000;
-% token                   = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
+measurementName         = "realData_short30"; 
+queryBucketName         = "daten-roh";
+writeBucketName         = "daten-aufbereitet";
+orgIDName               = "4c0bacdd5f5d7868";
+sendBatchSize           = 5000;
+token                   = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
 queryTagMatlabData      = "dataType=matlabData";      
 queryTagMatlabMetaData  = "dataType=matlabMetadata";  
 queryTagEdgeData        = "dataType=edgeData";        
@@ -48,46 +48,46 @@ StructuredEdgeData.Properties.DimensionNames = dNames;
 
 clearvars -except writeTagSyncedMatlabMetaData additionalMetadata writeTagSyncedEdgeMetaData StructuredMatlabData StructuredEdgeData measurement_settings numActiveChannels measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab
 
-% Prüfe, ob die erste Variable in StructuredMatlabData "Sync_Signal" heißt
-matlabFirstVar = StructuredMatlabData.Properties.VariableNames{1};
-isMatlabSync = strcmp(matlabFirstVar, 'Sync_Signal');
-
-% Prüfe, ob die erste Variable in StructuredEdgeData "sync_signal" heißt
-edgeFirstVar = StructuredEdgeData.Properties.VariableNames{1};
-isEdgeSync = strcmp(edgeFirstVar, 'sync_signal');
-%Falls Ja, entferne ersten Eintrag in Metadaten. Sonst Fehlermeldung
-if isMatlabSync && isEdgeSync
-    % --- Teil 1: measurement_settings ---
-    fieldsToTrimMeasurement = { ...
-        'MeasuredQuantity', ...
-        'Direction', ...
-        'ChannelNameOrdered', ...
-        'CalculatedUnit', ...
-        'AdditionalNotes' ...
-        };
-
-    for i = 1:numel(fieldsToTrimMeasurement)
-        fieldName = fieldsToTrimMeasurement{i};
-        measurement_settings.(fieldName)(1) = [];  % Erstes Element löschen
-    end
-
-    % --- Teil 2: additionalMetadata ---
-    fieldsToTrimAdditional = { ...
-        'EdgeChannelNames_rightOrder', ...
-        'EdgeVariableUnits_rightOrder' ...
-        };
-
-    for i = 1:numel(fieldsToTrimAdditional)
-        fieldName = fieldsToTrimAdditional{i};
-        additionalMetadata.(fieldName)(1) = [];  % Erstes Element löschen
-    end
-
-
-else
-    disp('Bitte Channels neu verkabeln, sodass Synchronisierungsskript laufen kann')
-    response = "Fehler: Sync Signal nicht an Channel 0";
-    return
-end
+% % Prüfe, ob die erste Variable in StructuredMatlabData "Sync_Signal" heißt
+% matlabFirstVar = StructuredMatlabData.Properties.VariableNames{1};
+% isMatlabSync = strcmp(matlabFirstVar, 'Sync_Signal');
+% 
+% % Prüfe, ob die erste Variable in StructuredEdgeData "sync_signal" heißt
+% edgeFirstVar = StructuredEdgeData.Properties.VariableNames{1};
+% isEdgeSync = strcmp(edgeFirstVar, 'sync_signal');
+% %Falls Ja, entferne ersten Eintrag in Metadaten. Sonst Fehlermeldung
+% if isMatlabSync && isEdgeSync
+%     % --- Teil 1: measurement_settings ---
+%     fieldsToTrimMeasurement = { ...
+%         'MeasuredQuantity', ...
+%         'Direction', ...
+%         'ChannelNameOrdered', ...
+%         'CalculatedUnit', ...
+%         'AdditionalNotes' ...
+%         };
+% 
+%     for i = 1:numel(fieldsToTrimMeasurement)
+%         fieldName = fieldsToTrimMeasurement{i};
+%         measurement_settings.(fieldName)(1) = [];  % Erstes Element löschen
+%     end
+% 
+%     % --- Teil 2: additionalMetadata ---
+%     fieldsToTrimAdditional = { ...
+%         'EdgeChannelNames_rightOrder', ...
+%         'EdgeVariableUnits_rightOrder' ...
+%         };
+% 
+%     for i = 1:numel(fieldsToTrimAdditional)
+%         fieldName = fieldsToTrimAdditional{i};
+%         additionalMetadata.(fieldName)(1) = [];  % Erstes Element löschen
+%     end
+% 
+% 
+% else
+%     disp('Bitte Channels neu verkabeln, sodass Synchronisierungsskript laufen kann')
+%     response = "Fehler: Sync Signal nicht an Channel 0";
+%     return
+% end
 
 
 %%
@@ -111,7 +111,7 @@ disp(statusMessage2);
 statusMessage3 = 'Synchronisierung Erfolgreich';
 disp(statusMessage3);
 response = statusMessage3;
-end
+% end
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -464,7 +464,7 @@ function statusMessage = convertAndSendSyncMetadata(measurementName, measurement
 
     % 2) Matlab-Metadaten-Zeilen erstellen
     chosenTagMatlab = char(writeTagSyncedMatlabMetaData);
-    numMatlabLines = numActiveChannels - 1;  % Es werden die ersten numActiveChannels-1 Zeilen erzeugt, da Synchronisierungschannel nicht mehr gesendet wird
+    numMatlabLines = numActiveChannels;  % Es werden die ersten numActiveChannels-1 Zeilen erzeugt, da Synchronisierungschannel nicht mehr gesendet wird
     matlabLines = cell(numMatlabLines, 1);
     
     % Basis-Zeitstempel (aktuelle Unix-Zeit minus 1h) und Zeitinkrement
@@ -498,7 +498,7 @@ function statusMessage = convertAndSendSyncMetadata(measurementName, measurement
     % Für Edge: von Index numActiveChannels bis zum Ende der VariableNames
     startEdgeIdx = numActiveChannels;
     totalFields = numel(dataTable.Properties.VariableNames);
-    numEdgeLines = totalFields - startEdgeIdx + 1;
+    numEdgeLines = totalFields - startEdgeIdx;
     edgeLines = cell(numEdgeLines, 1);
     
     % Fortlaufender Timestamp: Start direkt nach den Matlab-Daten
@@ -594,8 +594,8 @@ clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData tmp_ne
 
 % Daten zusammenführen
 % Zuerst die Werte der Data Translation und der Edge speichern
-tmp_new_Table = timetable2table(tmp_new(:,2:end),'ConvertRowTimes',false);
-TT_Table = timetable2table(TT(:,2:end),'ConvertRowTimes',false);
+tmp_new_Table = timetable2table(tmp_new, 'ConvertRowTimes', false);
+TT_Table = timetable2table(TT, 'ConvertRowTimes', false);
 
 % Nun führe die Messdaten zu einer Tabelle zusammen
 messdaten = horzcat(tmp_new_Table, TT_Table);
