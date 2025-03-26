@@ -1,14 +1,15 @@
 %% Hauptskript: Synchronisation der Daten
 
-% function response = SynchronizeMatlabEdgeDataDockerContainer(measurementName, queryBucketName, writeBucketName, orgIDName, sendBatchSize, token)
+function response = SynchronizeMatlabEdgeDataDockerContainer(measurementName, queryBucketName, writeBucketName, orgIDName, sendBatchSize, token)
 
 %% Testparameter (zum Testen – in der finalen Microservice-Version entfernen)
-measurementName         = "realData_short30"; 
-queryBucketName         = "daten-roh";
-writeBucketName         = "daten-aufbereitet";
-orgIDName               = "4c0bacdd5f5d7868";
-sendBatchSize           = 5000;
-token                   = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
+% measurementName         = "DemoData02"; 
+% queryBucketName         = "daten-roh";
+% writeBucketName         = "daten-aufbereitet";
+% orgIDName               = "4c0bacdd5f5d7868";
+% sendBatchSize           = 5000;
+% token                   = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
+container_modus         = true;                 % wenn Skript                      
 queryTagMatlabData      = "dataType=matlabData";      
 queryTagMatlabMetaData  = "dataType=matlabMetadata";  
 queryTagEdgeData        = "dataType=edgeData";        
@@ -18,6 +19,12 @@ writeTagSyncedMatlabMetaData  = "dataType=synchronizedMatlabMetaData";
 writeTagSyncedEdgeMetaData  = "dataType=synchronizedEdgeMetaData";
 
 %% Daten importieren und vorbereiten
+
+if ~container_modus
+    timezoneCorrection = 3600 * 1e9;
+else
+    timezoneCorrection = 0;
+end
 
 % Metadaten laden und strukturieren
 measurement_settings = getStructuredMatlabMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMatlabMetaData); 
@@ -46,7 +53,7 @@ dNames = StructuredEdgeData.Properties.DimensionNames;
 dNames{1} = 'Time';
 StructuredEdgeData.Properties.DimensionNames = dNames;
 
-clearvars -except writeTagSyncedMatlabMetaData additionalMetadata writeTagSyncedEdgeMetaData StructuredMatlabData StructuredEdgeData measurement_settings numActiveChannels measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab
+clearvars -except timezoneCorrection writeTagSyncedMatlabMetaData additionalMetadata writeTagSyncedEdgeMetaData StructuredMatlabData StructuredEdgeData measurement_settings numActiveChannels measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab
 
 % % Prüfe, ob die erste Variable in StructuredMatlabData "Sync_Signal" heißt
 % matlabFirstVar = StructuredMatlabData.Properties.VariableNames{1};
@@ -103,15 +110,15 @@ messdaten_syncr = SyncMatlabEdgeData(StructuredMatlabData, StructuredEdgeData);
 
 %% Senden der synchronisierten Daten in Tabelle an InfluxDB in Batches
 disp('Sende Daten an InfluxDB...')
-statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeTagSyncedData, messdaten_syncr);
+statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeTagSyncedData, messdaten_syncr, timezoneCorrection);
 disp(statusMessage);
 disp('Sende Metadaten an InfluxDB...')
-statusMessage2 = convertAndSendSyncMetadata(measurementName, measurement_settings, additionalMetadata, writeBucketName, orgIDName, token, writeTagSyncedMatlabMetaData, writeTagSyncedEdgeMetaData, messdaten_syncr, numActiveChannels);
+statusMessage2 = convertAndSendSyncMetadata(measurementName, measurement_settings, additionalMetadata, writeBucketName, orgIDName, token, writeTagSyncedMatlabMetaData, writeTagSyncedEdgeMetaData, messdaten_syncr, numActiveChannels, timezoneCorrection);
 disp(statusMessage2);
 statusMessage3 = 'Synchronisierung Erfolgreich';
 disp(statusMessage3);
 response = statusMessage3;
-% end
+end
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -318,10 +325,10 @@ end
 %
 % Rückgabe:
 %   statusMessage - Statusmeldung zum Schreibvorgang
-function statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, dataTable)
+function statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, dataTable, timezoneCorrection)
  
     % Konfiguriere Zeitstempel:
-    unixNowNs = posixtime(datetime('now')) * 1e9 - (3600 * 1e9);  % Aktuelle Zeit in Nanosekunden (-1h Korrektur)
+    unixNowNs = posixtime(datetime('now')) * 1e9 - timezoneCorrection;  % Aktuelle Zeit in Nanosekunden (-1h Korrektur)
     sampleRate = dataTable.Properties.SampleRate;
     timeStepNs = 1e9 / sampleRate;  % Zeitinkrement pro Zeile
     
@@ -430,7 +437,7 @@ end
 
 %% Funktion, um Metadaten (matlab und edge) zur Tabelle in Influx zu schreiben
 function statusMessage = convertAndSendSyncMetadata(measurementName, measurement_settings, additionalMetadata, writeBucketName, orgIDName, token, ...
-    writeTagSyncedMatlabMetaData, writeTagSyncedEdgeMetaData, dataTable, numActiveChannels)
+    writeTagSyncedMatlabMetaData, writeTagSyncedEdgeMetaData, dataTable, numActiveChannels, timezoneCorrection)
 % convertAndSendSyncMetadata - Konvertiert sowohl Matlab- als auch Edge-Metadaten
 %                               in das Line Protocol und sendet sie an InfluxDB.
 %
@@ -468,7 +475,7 @@ function statusMessage = convertAndSendSyncMetadata(measurementName, measurement
     matlabLines = cell(numMatlabLines, 1);
     
     % Basis-Zeitstempel (aktuelle Unix-Zeit minus 1h) und Zeitinkrement
-    timestamp_base = posixtime(datetime('now')) * 1e9 - 3600*1e9;
+    timestamp_base = posixtime(datetime('now')) * 1e9 - timezoneCorrection;
     timestamp_increment = 1e5;
     
     for i = 1:numMatlabLines
@@ -555,7 +562,7 @@ end
 function messdaten_syncr = SyncMatlabEdgeData(tmp, TT)
 tmp_new = tmp;  % Zuteilung am Anfang, da tmp_new oft verwendet und Code nachtäglich geändert wurde, sensitivität wird nicht mehr hier berechnet, sondern ist sie schon!
 
-clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData additionalMetadata TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except timezoneCorrection timezoneCorrection writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData additionalMetadata TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 % Synchronisieren der Messungen
 % Zuschneiden der Messungen: Beginne die Daten ab dem
@@ -563,14 +570,19 @@ clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData additi
 
 % Zuschneiden der Daten aus Data Translation: 
 startIndex_tmp_new = getStartIndexOfTrigger(tmp_new,0.1,0.2);
+fs = tmp_new.Properties.SampleRate; % Abtastrate der Data Translation bestimmen
+startIndex_tmp_new = startIndex_tmp_new-0.5*fs;
 tmp_new = tmp_new(startIndex_tmp_new:end,:);
+
 
 % Zuschneiden der Daten aus der Edge:
 test = find(TT.sync_signal == 0);
 startIndexTT = test(end)+1;
+fs_TT = TT.Properties.SampleRate; % Abtastrate der Data Translation bestimmen
+startIndexTT = startIndexTT-0.5*fs_TT;
 TT = TT(startIndexTT:end,:);
 
-clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData additionalMetadata TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except timezoneCorrection writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData additionalMetadata TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 % Abtastrate der Messungen der Edge erhöhen auf die Abtastrate der Data Translation Messkarte 
 % mit linearer Interpolation
@@ -578,7 +590,7 @@ fs = tmp_new.Properties.SampleRate; % Abtastrate der Data Translation bestimmen
 newTime = TT.Time(1):seconds(1/fs):TT.Time(end);  % Neuen Zeitvektor bestimmen, auf den die Messdaten der Edge gesampelt werden sollen 
 TT = retime(TT, newTime, 'linear');    % Abtastrate anpassen
 
-clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData TT additionalMetadata tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except timezoneCorrection writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData TT additionalMetadata tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 % Kürzen der Zeitreihen, sodass diese gleich lang werden:
 sizetmp_newData = size(tmp_new,1);
@@ -590,7 +602,7 @@ tmp_new = tmp_new(1:zuschnitt,:);
 % Zuschneiden der Daten aus der Edge:
 TT = TT(1:zuschnitt,:);
 
-clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData tmp_new TT additionalMetadata measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except timezoneCorrection writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData tmp_new TT additionalMetadata measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 % Daten zusammenführen
 % Zuerst die Werte der Data Translation und der Edge speichern
@@ -603,7 +615,7 @@ messdaten = horzcat(tmp_new_Table, TT_Table);
 % Mache eine Timetable, die bei 0 sec beginnt
 messdaten_syncr = table2timetable(messdaten,'SampleRate',tmp_new.Properties.SampleRate);
 
-clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData messdaten_syncr additionalMetadata measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except timezoneCorrection writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData messdaten_syncr additionalMetadata measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 end
 
