@@ -3,7 +3,7 @@
 function response = SynchronizeMatlabEdgeDataDockerContainer(measurementName, queryBucketName, writeBucketName, orgIDName, sendBatchSize, token)
 
 %% Testparameter (zum Testen – in der finalen Microservice-Version entfernen)
-% measurementName         = "DemoData02"; 
+% measurementName         = "DemoData01"; 
 % queryBucketName         = "daten-roh";
 % writeBucketName         = "daten-aufbereitet";
 % orgIDName               = "4c0bacdd5f5d7868";
