@@ -9,7 +9,7 @@ function response = SynchronizeMatlabEdgeDataDockerContainer(measurementName, qu
 % orgIDName               = "4c0bacdd5f5d7868";
 % sendBatchSize           = 5000;
 % token                   = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
-container_modus         = true;                 % wenn Skript                      
+container_modus         = true;  % wenn Skript als Container verwendet wird, wird der Zeitstempel in UTC +1 erstellt, nicht in UTC +0 wie im Skript                  
 queryTagMatlabData      = "dataType=matlabData";      
 queryTagMatlabMetaData  = "dataType=matlabMetadata";  
 queryTagEdgeData        = "dataType=edgeData";        
