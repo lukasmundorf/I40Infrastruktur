@@ -3,7 +3,7 @@
 function response = SynchronizeMatlabEdgeDataDockerContainer(measurementName, queryBucketName, writeBucketName, orgIDName, sendBatchSize, token)
 
 %% Testparameter (zum Testen – in der finalen Microservice-Version entfernen)
-% measurementName         = "realData_short25"; 
+% measurementName         = "DemoData01"; 
 % queryBucketName         = "daten-roh";
 % writeBucketName         = "daten-aufbereitet";
 % orgIDName               = "4c0bacdd5f5d7868";
@@ -56,37 +56,12 @@ isMatlabSync = strcmp(matlabFirstVar, 'Sync_Signal');
 edgeFirstVar = StructuredEdgeData.Properties.VariableNames{1};
 isEdgeSync = strcmp(edgeFirstVar, 'sync_signal');
 %Falls Ja, entferne ersten Eintrag in Metadaten. Sonst Fehlermeldung
-if isMatlabSync && isEdgeSync
-    % --- Teil 1: measurement_settings ---
-    fieldsToTrimMeasurement = { ...
-        'MeasuredQuantity', ...
-        'Direction', ...
-        'ChannelNameOrdered', ...
-        'CalculatedUnit', ...
-        'AdditionalNotes' ...
-        };
-
-    for i = 1:numel(fieldsToTrimMeasurement)
-        fieldName = fieldsToTrimMeasurement{i};
-        measurement_settings.(fieldName)(1) = [];  % Erstes Element löschen
-    end
-
-    % --- Teil 2: additionalMetadata ---
-    fieldsToTrimAdditional = { ...
-        'EdgeChannelNames_rightOrder', ...
-        'EdgeVariableUnits_rightOrder' ...
-        };
-
-    for i = 1:numel(fieldsToTrimAdditional)
-        fieldName = fieldsToTrimAdditional{i};
-        additionalMetadata.(fieldName)(1) = [];  % Erstes Element löschen
-    end
-
-
-else
+if ~(isMatlabSync && isEdgeSync)
     disp('Bitte Channels neu verkabeln, sodass Synchronisierungsskript laufen kann')
     response = "Fehler: Sync Signal nicht an Channel 0";
     return
+else
+    disp('Beide Sync-Signale liegen richtig auf Channel 1');
 end
 
 
@@ -321,7 +296,7 @@ end
 function statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, dataTable)
  
     % Konfiguriere Zeitstempel:
-    unixNowNs = posixtime(datetime('now')) * 1e9 - (3600 * 1e9);  % Aktuelle Zeit in Nanosekunden (-1h Korrektur)
+    unixNowNs = posixtime(datetime('now', TimeZone='UTC')) * 1e9;  % Aktuelle Zeit in UTC, Nanosekunden
     sampleRate = dataTable.Properties.SampleRate;
     timeStepNs = 1e9 / sampleRate;  % Zeitinkrement pro Zeile
     
@@ -464,11 +439,11 @@ function statusMessage = convertAndSendSyncMetadata(measurementName, measurement
 
     % 2) Matlab-Metadaten-Zeilen erstellen
     chosenTagMatlab = char(writeTagSyncedMatlabMetaData);
-    numMatlabLines = numActiveChannels - 1;  % Es werden die ersten numActiveChannels-1 Zeilen erzeugt, da Synchronisierungschannel nicht mehr gesendet wird
+    numMatlabLines = numActiveChannels;  % Es werden die ersten numActiveChannels-1 Zeilen erzeugt, da Synchronisierungschannel nicht mehr gesendet wird
     matlabLines = cell(numMatlabLines, 1);
     
     % Basis-Zeitstempel (aktuelle Unix-Zeit minus 1h) und Zeitinkrement
-    timestamp_base = posixtime(datetime('now')) * 1e9 - 3600*1e9;
+    timestamp_base = posixtime(datetime('now',TimeZone='UTC')) * 1e9;  % UTC-Timestamp!
     timestamp_increment = 1e5;
     
     for i = 1:numMatlabLines
@@ -498,7 +473,7 @@ function statusMessage = convertAndSendSyncMetadata(measurementName, measurement
     % Für Edge: von Index numActiveChannels bis zum Ende der VariableNames
     startEdgeIdx = numActiveChannels;
     totalFields = numel(dataTable.Properties.VariableNames);
-    numEdgeLines = totalFields - startEdgeIdx + 1;
+    numEdgeLines = totalFields - startEdgeIdx;
     edgeLines = cell(numEdgeLines, 1);
     
     % Fortlaufender Timestamp: Start direkt nach den Matlab-Daten
@@ -563,11 +538,16 @@ clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData additi
 
 % Zuschneiden der Daten aus Data Translation: 
 startIndex_tmp_new = getStartIndexOfTrigger(tmp_new,0.1,0.2);
+fs = tmp_new.Properties.SampleRate; % Abtastrate der Data Translation bestimmen
+startIndex_tmp_new = startIndex_tmp_new-0.5*fs;
 tmp_new = tmp_new(startIndex_tmp_new:end,:);
+
 
 % Zuschneiden der Daten aus der Edge:
 test = find(TT.sync_signal == 0);
 startIndexTT = test(end)+1;
+fs_TT = TT.Properties.SampleRate; % Abtastrate der Data Translation bestimmen
+startIndexTT = startIndexTT-0.5*fs_TT;
 TT = TT(startIndexTT:end,:);
 
 clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData additionalMetadata TT tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
@@ -578,7 +558,7 @@ fs = tmp_new.Properties.SampleRate; % Abtastrate der Data Translation bestimmen
 newTime = TT.Time(1):seconds(1/fs):TT.Time(end);  % Neuen Zeitvektor bestimmen, auf den die Messdaten der Edge gesampelt werden sollen 
 TT = retime(TT, newTime, 'linear');    % Abtastrate anpassen
 
-clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData TT additionalMetadata tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
+clearvars -except  writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData TT additionalMetadata tmp_new measurement_settings measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab % Workspace freiräumen
 
 % Kürzen der Zeitreihen, sodass diese gleich lang werden:
 sizetmp_newData = size(tmp_new,1);
@@ -594,8 +574,8 @@ clearvars -except writeTagSyncedMatlabMetaData writeTagSyncedEdgeMetaData tmp_ne
 
 % Daten zusammenführen
 % Zuerst die Werte der Data Translation und der Edge speichern
-tmp_new_Table = timetable2table(tmp_new(:,2:end),'ConvertRowTimes',false);
-TT_Table = timetable2table(TT(:,2:end),'ConvertRowTimes',false);
+tmp_new_Table = timetable2table(tmp_new, 'ConvertRowTimes', false);
+TT_Table = timetable2table(TT, 'ConvertRowTimes', false);
 
 % Nun führe die Messdaten zu einer Tabelle zusammen
 messdaten = horzcat(tmp_new_Table, TT_Table);
