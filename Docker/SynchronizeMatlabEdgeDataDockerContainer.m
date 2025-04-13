@@ -48,46 +48,21 @@ StructuredEdgeData.Properties.DimensionNames = dNames;
 
 clearvars -except timezoneCorrection writeTagSyncedMatlabMetaData additionalMetadata writeTagSyncedEdgeMetaData StructuredMatlabData StructuredEdgeData measurement_settings numActiveChannels measurementName writeBucketName orgIDName token sendBatchSize writeTagSyncedData additionalMetadata sampleRate_Edge sampleRate_Matlab
 
-% % Prüfe, ob die erste Variable in StructuredMatlabData "Sync_Signal" heißt
-% matlabFirstVar = StructuredMatlabData.Properties.VariableNames{1};
-% isMatlabSync = strcmp(matlabFirstVar, 'Sync_Signal');
-% 
-% % Prüfe, ob die erste Variable in StructuredEdgeData "sync_signal" heißt
-% edgeFirstVar = StructuredEdgeData.Properties.VariableNames{1};
-% isEdgeSync = strcmp(edgeFirstVar, 'sync_signal');
-% %Falls Ja, entferne ersten Eintrag in Metadaten. Sonst Fehlermeldung
-% if isMatlabSync && isEdgeSync
-%     % --- Teil 1: measurement_settings ---
-%     fieldsToTrimMeasurement = { ...
-%         'MeasuredQuantity', ...
-%         'Direction', ...
-%         'ChannelNameOrdered', ...
-%         'CalculatedUnit', ...
-%         'AdditionalNotes' ...
-%         };
-% 
-%     for i = 1:numel(fieldsToTrimMeasurement)
-%         fieldName = fieldsToTrimMeasurement{i};
-%         measurement_settings.(fieldName)(1) = [];  % Erstes Element löschen
-%     end
-% 
-%     % --- Teil 2: additionalMetadata ---
-%     fieldsToTrimAdditional = { ...
-%         'EdgeChannelNames_rightOrder', ...
-%         'EdgeVariableUnits_rightOrder' ...
-%         };
-% 
-%     for i = 1:numel(fieldsToTrimAdditional)
-%         fieldName = fieldsToTrimAdditional{i};
-%         additionalMetadata.(fieldName)(1) = [];  % Erstes Element löschen
-%     end
-% 
-% 
-% else
-%     disp('Bitte Channels neu verkabeln, sodass Synchronisierungsskript laufen kann')
-%     response = "Fehler: Sync Signal nicht an Channel 0";
-%     return
-% end
+% Prüfe, ob die erste Variable in StructuredMatlabData "Sync_Signal" heißt
+matlabFirstVar = StructuredMatlabData.Properties.VariableNames{1};
+isMatlabSync = strcmp(matlabFirstVar, 'Sync_Signal');
+
+% Prüfe, ob die erste Variable in StructuredEdgeData "sync_signal" heißt
+edgeFirstVar = StructuredEdgeData.Properties.VariableNames{1};
+isEdgeSync = strcmp(edgeFirstVar, 'sync_signal');
+%Falls Ja, entferne ersten Eintrag in Metadaten. Sonst Fehlermeldung
+if ~(isMatlabSync && isEdgeSync)
+    disp('Bitte Channels neu verkabeln, sodass Synchronisierungsskript laufen kann')
+    response = "Fehler: Sync Signal nicht an Channel 0";
+    return
+else
+    disp('Beide Sync-Signale liegen richtig auf Channel 1');
+end
 
 
 %%
