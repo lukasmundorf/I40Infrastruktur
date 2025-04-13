@@ -30,17 +30,17 @@ disp(a.Channels)
 
 start(a,"continuous");
 
-
+b = datetime("now", TimeZone="UTC");
+disp(b);
 pause(0.2);
 
 disp([a.NumScansAvailable, a.NumScansAcquired]);
 
 [ScanData, triggerTime] = a.read("all","OutputFormat","Timetable");
 disp(triggerTime);
-pause(2);
-[ScanData2, triggerTime2] = a.read("all","OutputFormat","Timetable");
-disp(triggerTime2);
 
+triggerTime.TimeZone = 'UTC';
+disp(triggerTime);
 % Nehme an, ScanData wurde bereits eingelesen und enthält die Zeitspalte "Time"
 % Konvertiere die Zeitspalte in Sekunden (double) mittels posixtime:
 

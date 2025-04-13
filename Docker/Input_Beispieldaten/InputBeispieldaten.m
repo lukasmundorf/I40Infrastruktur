@@ -1,7 +1,7 @@
 %% Skript, um manuell Daten in die Influx einzuschreiben, da die Verbindung nicht funktionieren wird
 clear;
 % Testargumente für hier entfernen, sobald in Microservice umgewandelt wird
-measurementName = "TestDemoData01"; 
+measurementName = "realData_short29"; 
 writeBucketName = "daten-roh";
 orgIDName = "4c0bacdd5f5d7868";
 sendBatchSize = 5000;
@@ -69,7 +69,7 @@ function statusMessage = convertAndSendTable(measurementName, writeBucketName, o
     
     % Konfiguration der Zeitstempel
     % Aktuelle Zeit in Nanosekunden abrufen (-1h für richtige Zeitzone)
-    unixNowNs = posixtime(datetime('now')) * 1e9 - (3600 * 1e9);
+    unixNowNs = posixtime(datetime('now', TimeZone='UTC'))*1e9;
     
     % SampleRate aus den Tabelleneigenschaften
     sampleRate = dataTable.Properties.SampleRate;
@@ -237,7 +237,7 @@ function statusMessage = sendExampleMatlabMetadata(measurementName, writeBucketN
     end
 
     % Berechne den Basis-Zeitstempel in ns (aktuelle Unix-Zeit in ns minus 3600*10^9)
-    timestamp_base = posixtime(datetime('now')) * 1e9 - 3600*1e9;
+    timestamp_base = posixtime(datetime('now',TimeZone='UTC')) * 1e9;
     % Setze das Inkrement auf 0,1ms = 1e5 ns
     timestamp_increment = 1e5; 
 
@@ -327,7 +327,7 @@ fieldNames = { ...
 sampleRate = 500;
 
 %Berechne den Basis-Zeitstempel in ns (aktuelle Unix-Zeit in ns minus 3600*10^9)
-timestamp_base = posixtime(datetime('now')) * 1e9 - 3600*1e9;
+timestamp_base = posixtime(datetime('now',TimeZone='UTC')) * 1e9;
 % Setze das Inkrement auf 0,1ms = 1e5 ns
 timestamp_increment = 1e5;
 

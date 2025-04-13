@@ -20,6 +20,11 @@ archiveName = "synchronize_matlab_edge_data";
 imageName = "synchronize-matlab-edge-data";
 
 
+% matlabFileName = "timestampDockerVsScript.m";
+% archiveName = "timestamp_DockerVsScript";
+% imageName = "timestamp-docker-vs-script";
+
+
 
 result = compiler.build.productionServerArchive(matlabFileName, 'ArchiveName',archiveName,'Verbose','on');
 compiler.package.microserviceDockerImage(result,'ImageName',imageName)

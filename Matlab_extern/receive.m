@@ -54,7 +54,7 @@ while true
     if ~isempty(messages)
         for i = 1:height(messages)
             payload = string(messages.Data(i));
-            disp(datetime("now"));
+            disp(datetime("now", TimeZone="UTC"));
             data = jsondecode(payload);
 
             fprintf("\n--- Originale Nachricht ---\n");
@@ -233,7 +233,7 @@ end
         %
         % Für den Zeitstempel verwenden wir die aktuelle Unixzeit in Millisekunden.
         metadata = handles.lastFilteredData;
-        t = posixtime(datetime('now', 'TimeZone', 'local'));
+        t = posixtime(datetime('now', TimeZone='UTC'));
         t_ms = round(t * 1000 * msToNs);
 
         % Für jeden Channel:
@@ -270,6 +270,7 @@ end
     function startMeasurement()
         % Starte das DAQ-Objekt im kontinuierlichen Modus
         start(handles.d, "continuous");
+        handles.triggerTime = datetime("now", TimeZone="UTC");
         pause(2);  % Warte 2 Sekunden, damit das DAQ-Objekt initial Daten sammeln kann
 
         if isempty(handles.measurementTimer) || ~isvalid(handles.measurementTimer)
@@ -295,7 +296,7 @@ end
         % Prüfe, ob noch Scans im DAQ-Puffer vorhanden sind.
         if handles.d.NumScansAvailable > 0
             disp('Flush: Zusätzliche Scans werden vom DAQ gelesen ...');
-            [ScanData, triggerTime] = handles.d.read("all", "OutputFormat", "Timetable");
+            ScanData = handles.d.read("all", "OutputFormat", "Timetable");
             if ~isempty(ScanData)
 
                 % Sensitivitätswerte einrechnen
@@ -309,7 +310,7 @@ end
 
 
                 % Verarbeitung analog zur sendData()-Funktion:
-                timeVec = posixtime(triggerTime + ScanData.Time) * 1000 *msToNs - 3600*1000*msToNs;
+                timeVec = posixtime(handles.triggerTime + ScanData.Time) * 1000 *msToNs;
                 Ttime = table(int64(timeVec), 'VariableNames', {'time'});
                 voltageData = table2array(ScanData);
                 nChannels = size(voltageData, 2);
@@ -370,11 +371,12 @@ end
             % Ausgabe des Bufferstatus vor dem Lesen:
             disp("Vor read: ");
             disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
-            disp(datetime("now"));
+            disp(datetime("now", TimeZone="UTC"));
             scans = handles.d.NumScansAvailable;
 
             conversionTime = tic;  % Start der Zeitmessung (read bis write)
-            [ScanData, triggerTime] = handles.d.read("all", "OutputFormat", "Timetable");
+            ScanData = handles.d.read("all", "OutputFormat", "Timetable");
+
             disp("Nach read: ");
             disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
 
@@ -389,7 +391,7 @@ end
 
             % Berechne den Unix-Zeitstempel (in Millisekunden)
             %Erstellen einer Tabelle aus Zeitstemplen, die später zu den Messdaten hinzugefügt wird
-            timeVec = posixtime(triggerTime + ScanData.Time) * 1000 * msToNs - 3600 * 1000 * msToNs; %Zeitzonen- Umrechnung -> immer im Debug nachschauen!
+            timeVec = posixtime(handles.triggerTime + ScanData.Time) * 1000 * msToNs;
             Ttime = table(int64(timeVec), 'VariableNames', {'time'});
 
             % Konvertiere timetable zu table, Spalte "Time" wurde schon ausgewertet

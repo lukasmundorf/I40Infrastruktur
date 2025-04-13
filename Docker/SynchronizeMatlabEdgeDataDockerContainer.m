@@ -9,7 +9,6 @@ function response = SynchronizeMatlabEdgeDataDockerContainer(measurementName, qu
 % orgIDName               = "4c0bacdd5f5d7868";
 % sendBatchSize           = 5000;
 % token                   = 'R-Klt0c_MSuLlVJwvDRWItqX40G_ATERJvr4uy93xgYe1d7MoyHIY_sc_twi4h6GnQdmU9WJI74NbwntEI2luw==';
-container_modus         = true;  % wenn Skript als Container verwendet wird, wird der Zeitstempel in UTC +1 erstellt, nicht in UTC +0 wie im Skript                  
 queryTagMatlabData      = "dataType=matlabData";      
 queryTagMatlabMetaData  = "dataType=matlabMetadata";  
 queryTagEdgeData        = "dataType=edgeData";        
@@ -19,12 +18,6 @@ writeTagSyncedMatlabMetaData  = "dataType=synchronizedMatlabMetaData";
 writeTagSyncedEdgeMetaData  = "dataType=synchronizedEdgeMetaData";
 
 %% Daten importieren und vorbereiten
-
-if ~container_modus
-    timezoneCorrection = 3600 * 1e9;
-else
-    timezoneCorrection = 0;
-end
 
 % Metadaten laden und strukturieren
 measurement_settings = getStructuredMatlabMetadata(measurementName, queryBucketName, orgIDName, token, queryTagMatlabMetaData); 
@@ -110,10 +103,10 @@ messdaten_syncr = SyncMatlabEdgeData(StructuredMatlabData, StructuredEdgeData);
 
 %% Senden der synchronisierten Daten in Tabelle an InfluxDB in Batches
 disp('Sende Daten an InfluxDB...')
-statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeTagSyncedData, messdaten_syncr, timezoneCorrection);
+statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, sendBatchSize, writeTagSyncedData, messdaten_syncr);
 disp(statusMessage);
 disp('Sende Metadaten an InfluxDB...')
-statusMessage2 = convertAndSendSyncMetadata(measurementName, measurement_settings, additionalMetadata, writeBucketName, orgIDName, token, writeTagSyncedMatlabMetaData, writeTagSyncedEdgeMetaData, messdaten_syncr, numActiveChannels, timezoneCorrection);
+statusMessage2 = convertAndSendSyncMetadata(measurementName, measurement_settings, additionalMetadata, writeBucketName, orgIDName, token, writeTagSyncedMatlabMetaData, writeTagSyncedEdgeMetaData, messdaten_syncr, numActiveChannels);
 disp(statusMessage2);
 statusMessage3 = 'Synchronisierung Erfolgreich';
 disp(statusMessage3);
@@ -325,10 +318,10 @@ end
 %
 % Rückgabe:
 %   statusMessage - Statusmeldung zum Schreibvorgang
-function statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, dataTable, timezoneCorrection)
+function statusMessage = convertAndSendSyncTable(measurementName, writeBucketName, orgIDName, token, batchSize, writeTag, dataTable)
  
     % Konfiguriere Zeitstempel:
-    unixNowNs = posixtime(datetime('now')) * 1e9 - timezoneCorrection;  % Aktuelle Zeit in Nanosekunden (-1h Korrektur)
+    unixNowNs = posixtime(datetime('now', TimeZone='UTC')) * 1e9;  % Aktuelle Zeit in UTC, Nanosekunden
     sampleRate = dataTable.Properties.SampleRate;
     timeStepNs = 1e9 / sampleRate;  % Zeitinkrement pro Zeile
     
@@ -437,7 +430,7 @@ end
 
 %% Funktion, um Metadaten (matlab und edge) zur Tabelle in Influx zu schreiben
 function statusMessage = convertAndSendSyncMetadata(measurementName, measurement_settings, additionalMetadata, writeBucketName, orgIDName, token, ...
-    writeTagSyncedMatlabMetaData, writeTagSyncedEdgeMetaData, dataTable, numActiveChannels, timezoneCorrection)
+    writeTagSyncedMatlabMetaData, writeTagSyncedEdgeMetaData, dataTable, numActiveChannels)
 % convertAndSendSyncMetadata - Konvertiert sowohl Matlab- als auch Edge-Metadaten
 %                               in das Line Protocol und sendet sie an InfluxDB.
 %
@@ -475,7 +468,7 @@ function statusMessage = convertAndSendSyncMetadata(measurementName, measurement
     matlabLines = cell(numMatlabLines, 1);
     
     % Basis-Zeitstempel (aktuelle Unix-Zeit minus 1h) und Zeitinkrement
-    timestamp_base = posixtime(datetime('now')) * 1e9 - timezoneCorrection;
+    timestamp_base = posixtime(datetime('now',TimeZone='UTC')) * 1e9;  % UTC-Timestamp!
     timestamp_increment = 1e5;
     
     for i = 1:numMatlabLines
