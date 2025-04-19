@@ -271,11 +271,11 @@ end
         % Starte das DAQ-Objekt im kontinuierlichen Modus
         start(handles.d, "continuous");
         handles.triggerTime = datetime("now", TimeZone="UTC");
-        pause(2);  % Warte 2 Sekunden, damit das DAQ-Objekt initial Daten sammeln kann
+        pause(1);  % Warte 2 Sekunden, damit das DAQ-Objekt initial Daten sammeln kann
 
         if isempty(handles.measurementTimer) || ~isvalid(handles.measurementTimer)
             handles.measurementTimer = timer('ExecutionMode', 'fixedRate', ...
-                'Period', 2, ...  % Alle 2 Sekunden
+                'Period', 4, ...  % Alle 2 Sekunden
                 'TimerFcn', @sendData);
             start(handles.measurementTimer);
         end
@@ -367,7 +367,7 @@ end
 % sendet in Paketen der vorgegebenen Größe (handles.numPointsThreshold) die Daten per MQTT.
     function sendData(~, ~)
         try
-            pause(0.2);
+            pause(0.4);
             % Ausgabe des Bufferstatus vor dem Lesen:
             disp("Vor read: ");
             disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
