@@ -445,3 +445,4 @@ end
         fprintf("Aktuelle Abtastrate: %d Hz\n", handles.d.Rate);
     end
 end
+
