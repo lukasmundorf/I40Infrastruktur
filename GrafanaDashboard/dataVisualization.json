@@ -1,0 +1,526 @@
+{
+    "__inputs": [
+      {
+        "name": "DS_INFLUXDB",
+        "label": "influxdb",
+        "description": "",
+        "type": "datasource",
+        "pluginId": "influxdb",
+        "pluginName": "InfluxDB"
+      }
+    ],
+    "__elements": {},
+    "__requires": [
+      {
+        "type": "grafana",
+        "id": "grafana",
+        "name": "Grafana",
+        "version": "11.5.1"
+      },
+      {
+        "type": "datasource",
+        "id": "influxdb",
+        "name": "InfluxDB",
+        "version": "1.0.0"
+      },
+      {
+        "type": "panel",
+        "id": "table",
+        "name": "Table",
+        "version": ""
+      },
+      {
+        "type": "panel",
+        "id": "timeseries",
+        "name": "Time series",
+        "version": ""
+      }
+    ],
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": null,
+    "links": [],
+    "panels": [
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
+        },
+        "description": "bucket: daten-roh",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "sync_signal edgeData"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "yellow",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Sync_Signal matlabData"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "green",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "maxDataPoints": 100000000,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.5.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "${DS_INFLUXDB}"
+            },
+            "query": "from(bucket: \"daten-roh\")\r\n  |> range(start: 2025-04-18T09:49:23.00Z, stop: 2025-04-18T09:49:24.35Z)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"inserterdTestData_short29\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Sync_Signal\" or r[\"_field\"] == \"sync_signal\")\r\n",
+            "refId": "A"
+          }
+        ],
+        "title": "Unsynchronisierte Daten",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
+        },
+        "description": "Ein beispielhafter Channel\nbucket: daten-roh",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "id": 3,
+        "maxDataPoints": 100000000,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.5.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "${DS_INFLUXDB}"
+            },
+            "query": "from(bucket: \"daten-roh\")\r\n  |> range(start: 2025-04-18T09:46:01Z, stop: 2025-04-18T09:46:04Z)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sensor_data_01\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"yForce\")\r\n",
+            "refId": "A"
+          }
+        ],
+        "title": "Sensordaten",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
+        },
+        "description": "bucket: daten-aufbereitet",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "fixedColor": "yellow",
+              "mode": "palette-classic",
+              "seriesBy": "last"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineStyle": {
+                "fill": "solid"
+              },
+              "lineWidth": 2,
+              "pointSize": 11,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Sync_Signal synchronizedEdgeMatlabData"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "green",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "sync_signal synchronizedEdgeMatlabData"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "fixedColor": "yellow",
+                    "mode": "fixed"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "id": 2,
+        "maxDataPoints": 100000000,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.5.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "${DS_INFLUXDB}"
+            },
+            "query": "from(bucket: \"daten-aufbereitet\")\r\n  |> range(start: 2025-04-18T09:53:08Z, stop: 2025-04-18T09:53:10Z)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"inserterdTestData_short29\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Sync_Signal\" or r[\"_field\"] == \"sync_signal\")\r\n",
+            "refId": "A"
+          }
+        ],
+        "title": "Synchronisierte Daten",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB}"
+        },
+        "description": "bucket: daten-roh",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "inspect": false
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        },
+        "id": 5,
+        "options": {
+          "cellHeight": "sm",
+          "footer": {
+            "countRows": false,
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "frameIndex": 3,
+          "showHeader": true,
+          "sortBy": []
+        },
+        "pluginVersion": "11.5.1",
+        "targets": [
+          {
+            "query": "from(bucket: \"daten-roh\")\r\n  |> range(start: 0)\r\n  |> filter(fn: (r) =>\r\n    r[\"_measurement\"] == \"sensor_data_01\" and\r\n    r[\"dataType\"]      == \"matlabMetadata\"\r\n  )\r\n  // unnötige Influx-Spalten entfernen\r\n  |> drop(columns: [\"_measurement\", \"_field\"])\r\n  // alle Daten in eine Gruppe zusammenfassen\r\n  |> group()\r\n  // Pivotieren: pro Kombination aus deinen Tags eine Zeile,\r\n  // und pro Datum eine Spalte mit dem Messwert\r\n  |> pivot(\r\n    rowKey:      [\"channelNumber\", \"einheit\", \"notizen\", \"measuredQuantity\", \"messrichtung\"],\r\n    columnKey:   [\"_time\"],\r\n    valueColumn: \"_value\"\r\n  )\r\n  // Zeit‑Metainfos weghauen\r\n  |> drop(columns: [\"_start\", \"_stop\", \"_time\"])\r\n",
+            "refId": "A",
+            "datasource": {
+              "type": "influxdb",
+              "uid": "${DS_INFLUXDB}"
+            }
+          }
+        ],
+        "title": "Metadaten Sensoren",
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "includeByName": {},
+              "indexByName": {
+                "2025-04-18T09:46:00.453528064Z": 5,
+                "channelNumber": 0,
+                "einheit": 3,
+                "measuredQuantity": 1,
+                "messrichtung": 2,
+                "notizen": 4
+              },
+              "renameByName": {
+                "2025-04-18": "channelName",
+                "2025-04-18T09:46:00.453528064Z": "channelName",
+                "measuredQuantity": "",
+                "notizen": ""
+              }
+            }
+          }
+        ],
+        "type": "table"
+      }
+    ],
+    "refresh": "",
+    "schemaVersion": 40,
+    "tags": [],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "2025-04-18T09:49:23.000Z",
+      "to": "2025-04-18T09:49:24.349Z"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "MeasurementVisualization",
+    "uid": "beja91syffuo0c",
+    "version": 19,
+    "weekStart": ""
+  }
