@@ -365,70 +365,91 @@ end
 
 % sendData() liest die Messdaten vom DAQ-Objekt ein, fügt sie einem Puffer hinzu und
 % sendet in Paketen der vorgegebenen Größe (handles.numPointsThreshold) die Daten per MQTT.
-    function sendData(~, ~)
-        try
-            pause(0.4);
-            % Ausgabe des Bufferstatus vor dem Lesen:
-            disp("Vor read: ");
-            disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
-            disp(datetime("now", TimeZone="UTC"));
-            scans = handles.d.NumScansAvailable;
+function sendData(~, ~)
+    try
+        pause(0.4);
 
-            conversionTime = tic;  % Start der Zeitmessung (read bis write)
-            ScanData = handles.d.read("all", "OutputFormat", "Timetable");
+        %% --- Debug-Log: Vor read ---
+        disp("Vor read: ");
+        disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
+        disp(datetime("now", TimeZone="UTC"));
+        scans = handles.d.NumScansAvailable;
 
-            disp("Nach read: ");
-            disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
+        totalTimer = tic;
 
-            % Sensitivitätswerte einrechnen
-            ScanData(:, handles.isXoverV) = ScanData(:, handles.isXoverV) .* handles.lastFilteredData.sensiArray(handles.isXoverV)' .* double(handles.faktoren(handles.isXoverV)); % Multiplikation für "x/V", "faktoren" stammt aus der Umrechnung der Einheiten
-            ScanData(:, handles.isVoverX) = ScanData(:, handles.isVoverX) ./ handles.lastFilteredData.sensiArray(handles.isVoverX)' .* double(handles.faktoren(handles.isVoverX)); % Division für "V/x", "faktoren" stammt aus der Umrechnung der Einheiten
+        %% --- Zeitmessung: read() ---
+        tRead = tic;
+        ScanData = handles.d.read("all", "OutputFormat", "Timetable");
+        tReadElapsed = toc(tRead);
 
-            % Abhängig von dem Vorzeichen der Werte in measurement_settings.Direction
-            % sollen die Zeitreiehen aus tmp_new mit -1 multipliziert werden
-            negative_mask = startsWith(handles.lastFilteredData.messrichtung, "-"); % Logische Maske für alle Einträge mit negativem Vorzeichen ("-")
-            ScanData(:, negative_mask) = ScanData(:, negative_mask) .* -1; % Multipliziere die betroffenen Spalten mit -1
+        %% --- Debug-Log: Nach read ---
+        disp("Nach read: ");
+        disp([handles.d.NumScansAvailable, handles.d.NumScansAcquired]);
 
-            % Berechne den Unix-Zeitstempel (in Millisekunden)
-            %Erstellen einer Tabelle aus Zeitstemplen, die später zu den Messdaten hinzugefügt wird
-            timeVec = posixtime(handles.triggerTime + ScanData.Time) * 1000 * msToNs;
-            Ttime = table(int64(timeVec), 'VariableNames', {'time'});
+        %% --- Zeitmessung: Datenverarbeitung ---
+        tTransform = tic;
+        ScanData(:, handles.isXoverV) = ScanData(:, handles.isXoverV) .* handles.lastFilteredData.sensiArray(handles.isXoverV)' .* double(handles.faktoren(handles.isXoverV));
+        ScanData(:, handles.isVoverX) = ScanData(:, handles.isVoverX) ./ handles.lastFilteredData.sensiArray(handles.isVoverX)' .* double(handles.faktoren(handles.isVoverX));
+        negative_mask = startsWith(handles.lastFilteredData.messrichtung, "-");
+        ScanData(:, negative_mask) = ScanData(:, negative_mask) .* -1;
 
-            % Konvertiere timetable zu table, Spalte "Time" wurde schon ausgewertet
-            ScanData = timetable2table(ScanData, 'ConvertRowTimes', false);
-            ScanData.Properties.VariableNames = handles.lastFilteredData.channelnames;
+        timeVec = posixtime(handles.triggerTime + ScanData.Time) * 1000 * msToNs;
+        Ttime = table(int64(timeVec), 'VariableNames', {'time'});
 
-            % Kombiniere Zeit und Spannungsdaten.
-            Tcombined = [Ttime, ScanData];
+        ScanData = timetable2table(ScanData, 'ConvertRowTimes', false);
+        ScanData.Properties.VariableNames = handles.lastFilteredData.channelnames;
+        Tcombined = [Ttime, ScanData];
 
-            % Wandle die kombinierte Tabelle in ein Struct-Array um (jede Zeile ein Struct).
-            newData = table2struct(Tcombined, 'ToScalar', false);
+        newData = table2struct(Tcombined, 'ToScalar', false);
+        [newData.dataType] = deal("matlabData");
+        [newData.measurementName] = deal(handles.lastFilteredData.measurementName);
+        tTransformElapsed = toc(tTransform);
 
-            % Füge für jedes Struct zusätzliche Felder für Tags hinzu:
-            [newData.dataType] = deal("matlabData");
-            [newData.measurementName] = deal(handles.lastFilteredData.measurementName); %füge evtl für bessere Performance lieber eine Tabellenspalte vorher hinzu, anstatt deal zu nutzen
+        %% --- Buffer auffüllen & senden mit Statistik ---
+        handles.measurementBuffer = [handles.measurementBuffer; newData(:)];
 
-            % Hänge die neuen Daten an den Puffer an.
-            handles.measurementBuffer = [handles.measurementBuffer; newData(:)];
+        jsonTotalTime = 0;
+        writeTotalTime = 0;
+        packetsSent = 0;
 
-            % Sende Pakete, solange genügend Elemente im Puffer vorhanden sind.
-            while numel(handles.measurementBuffer) >= handles.numPointsThreshold
-                packet = handles.measurementBuffer(1:handles.numPointsThreshold);
-                handles.measurementBuffer(1:handles.numPointsThreshold) = [];
+        while numel(handles.measurementBuffer) >= handles.numPointsThreshold
+            packet = handles.measurementBuffer(1:handles.numPointsThreshold);
+            handles.measurementBuffer(1:handles.numPointsThreshold) = [];
 
-                jsonStr = jsonencode(packet);
-                %disp(jsonStr);
-                write(handles.mqttClient, handles.dataTopic, jsonStr,QualityOfService=1);
-                %fprintf('Gesendetes Datenpaket: %s\n', jsonStr);
-            end
-            % Messe die verstrichene Zeit von read bis Ende des aktuellen Schleifendurchlaufs
-            actualTime = toc(conversionTime);
-            performance = scans / actualTime;  % gesendete Scans pro Sekunde
-            disp(['Performance: ' num2str(performance) ' Scans/s']);
-        catch ME
-            fprintf('Fehler in sendData: %s\n', ME.message);
+            % Zeitmessung: jsonencode
+            tJson = tic;
+            jsonStr = jsonencode(packet);
+            jsonTotalTime = jsonTotalTime + toc(tJson);
+
+            % Zeitmessung: write
+            tWrite = tic;
+            write(handles.mqttClient, handles.dataTopic, jsonStr, QualityOfService=1);
+            writeTotalTime = writeTotalTime + toc(tWrite);
+
+            packetsSent = packetsSent + 1;
         end
+
+        %% --- Gesamtzeit für sendData ---
+        totalElapsed = toc(totalTimer);
+
+        %% --- Ausgabe mit prozentualem Anteil ---
+        disp("======== Zeitaufwand sendData() pro Schritt ========");
+        disp(['Total-Zeit:             ', num2str(totalElapsed), ' s']);
+        disp(['read():                ', num2str(tReadElapsed), ' s (', num2str(100*tReadElapsed/totalElapsed, '%.1f'), '%)']);
+        disp(['Umformung:             ', num2str(tTransformElapsed), ' s (', num2str(100*tTransformElapsed/totalElapsed, '%.1f'), '%)']);
+        disp(['jsonencode (gesamt):   ', num2str(jsonTotalTime), ' s (', num2str(100*jsonTotalTime/totalElapsed, '%.1f'), '%)']);
+        disp(['write() (gesamt):      ', num2str(writeTotalTime), ' s (', num2str(100*writeTotalTime/totalElapsed, '%.1f'), '%)']);
+        disp(['Pakete gesendet:       ', num2str(packetsSent)]);
+        disp("====================================================");
+
+        %% --- Performance ---
+        performance = scans / totalElapsed;
+        disp(['Performance: ', num2str(performance), ' Scans/s']);
+    catch ME
+        fprintf('Fehler in sendData: %s\n', ME.message);
     end
+end
+
 
     function dispLastFiltered()
         fprintf("\n--- Nachricht nach Kürzen und Verrechnung der Einheiten (letzter gültiger Stand) ---\n");
