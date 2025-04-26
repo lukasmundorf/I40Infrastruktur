@@ -271,10 +271,10 @@ end
         % Starte das DAQ-Objekt im kontinuierlichen Modus
         start(handles.d, "continuous");
         handles.triggerTime = datetime("now", TimeZone="UTC");
-        pause(1);  % Warte 2 Sekunden, damit das DAQ-Objekt initial Daten sammeln kann
+        pause(4);  % Warte 2 Sekunden, damit das DAQ-Objekt initial Daten sammeln kann
 
         if isempty(handles.measurementTimer) || ~isvalid(handles.measurementTimer)
-            handles.measurementTimer = timer('ExecutionMode', 'fixedRate', ...
+            handles.measurementTimer = timer('ExecutionMode', 'fixedDelay', ...
                 'Period', 4, ...  % Alle 2 Sekunden
                 'TimerFcn', @sendData);
             start(handles.measurementTimer);
