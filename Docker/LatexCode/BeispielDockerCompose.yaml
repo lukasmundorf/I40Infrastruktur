@@ -23,3 +23,31 @@ services:
 volumes:
   db_data:
 
+influxdb:
+  image: influxdb:2.7
+  container_name: influxdb
+  ports:
+    - "8086:8086"
+  environment:
+    - DOCKER_INFLUXDB_INIT_MODE=setup
+    - DOCKER_INFLUXDB_INIT_USERNAME=usernamehere
+    - DOCKER_INFLUXDB_INIT_PASSWORD=passwordhere
+    - DOCKER_INFLUXDB_INIT_ORG=my-org
+    - DOCKER_INFLUXDB_INIT_BUCKET=daten-roh
+    - DOCKER_INFLUXDB_INIT_RETENTION=1w
+  volumes:
+    - influxdb-data:/var/lib/influxdb2
+
+grafana:
+  image: grafana/grafana
+  container_name: grafana
+  depends_on:
+    - influxdb
+  restart: unless-stopped
+  ports:
+    - "3000:3000"
+  volumes:
+    - grafana-storage:/var/lib/grafana
+  environment:
+    - GF_SECURITY_ADMIN_USER=usernamehere
+    - GF_SECURITY_ADMIN_PASSWORD=passwordhere
