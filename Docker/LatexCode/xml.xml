@@ -1,0 +1,7 @@
+<person name="Max" age="30" student="false">
+    <addresses>
+        <address city="Berlin" zip="10115" />
+        <address city="Munich" zip="80331" />
+    </addresses>
+</person>
+
