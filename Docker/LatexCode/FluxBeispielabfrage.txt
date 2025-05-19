@@ -1,5 +1,0 @@
-from(bucket: "example-bucket")
-  |> range(start: -1d)
-  |> filter(fn: (r) => r._measurement == "example-measurement")
-  |> mean()
-  |> yield(name: "_results")

@@ -203,11 +203,11 @@ function dataTT = getStructuredInfluxData(sampleRate, measurementName, queryBuck
     dataTT.Properties.SampleRate = Fs;
 end
 
-%% Funktion: getMatlabValidationData
-% Lädt Testdaten aus einer Datei zur Validierung
-function matlabData = getMatlabValidationData()
-    matlabData = load('ValidationTestQuery.mat');
-end
+% %% Funktion: getMatlabValidationData
+% % Lädt Testdaten aus einer Datei zur Validierung
+% function matlabData = getMatlabValidationData()
+%     matlabData = load('ValidationTestQuery.mat');
+% end
 
 %% Funktion: getInfluxData
 % Führt eine Abfrage bei InfluxDB aus und gibt die resultierende Tabelle zurück.
