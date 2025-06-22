@@ -15,14 +15,18 @@
 % archiveName = "my_Microservice";
 % imageName = "test-conversion";
 
-matlabFileName = "SynchronizeMatlabEdgeDataDockerContainer.m";
-archiveName = "synchronize_matlab_edge_data";
-imageName = "synchronize-matlab-edge-data";
+% matlabFileName = "SynchronizeMatlabEdgeDataDockerContainer.m";
+% archiveName = "synchronize_matlab_edge_data";
+% imageName = "synchronize-matlab-edge-data";
 
 
 % matlabFileName = "timestampDockerVsScript.m";
 % archiveName = "timestamp_DockerVsScript";
 % imageName = "timestamp-docker-vs-script";
+
+matlabFileName = "doubleValues.m";
+archiveName = "double_values";
+imageName = "double-values";
 
 
 

@@ -37,3 +37,6 @@ EdgeDaten.mat
 MatlabDaten_synchronized.mat
 
 TestSkripte/
+
+**/*productionServerArchive*/
+**/*microserviceDockerImage*/

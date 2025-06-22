@@ -1,0 +1,8 @@
+services:
+  doubleValues:
+    image: double-values
+    container_name: doublevalues
+    ports:
+      - "9900:9910"
+    volumes:
+      - /Users/lukas/Library/CloudStorage/OneDrive-Personal/Hiwi_wbk/Code/I40Infrastruktur/Docker/MatlabDockerBindMountTest:/mnt/shared
