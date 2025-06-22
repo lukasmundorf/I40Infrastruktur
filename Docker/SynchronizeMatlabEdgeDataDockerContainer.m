@@ -1,4 +1,4 @@
-%% Hauptskript: Synchronisation der Daten
+%% Hauptskript: Synchronisation der Daten ja
 
 function response = SynchronizeMatlabEdgeDataDockerContainer(measurementName, queryBucketName, writeBucketName, orgIDName, sendBatchSize, token)
 
